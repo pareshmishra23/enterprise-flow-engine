@@ -1,0 +1,310 @@
+openapi: 3.0.3
+info:
+  title: Enterprise Flow Engine (EFE) REST API
+  description: Reusable, generic REST facility for the Enterprise Flow Engine (EFE) integration platform.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /api/v1/jobs:
+    post:
+      summary: Submit a generic Job for asynchronous processing
+      operationId: submitJob
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Client-provided unique idempotency key
+        - name: X-Correlation-ID
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Distributed correlation identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobSubmissionRequest'
+      responses:
+        '201':
+          description: Job successfully registered and queued for execution
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of the registered job resource
+            X-Correlation-ID:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobSubmissionResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/jobs/{jobId}:
+    get:
+      summary: Retrieve the current execution status of a Job
+      operationId: getJobStatus
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique job identifier (e.g., JOB-123456)
+      responses:
+        '200':
+          description: Job status successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobStatusResponse'
+        '404':
+          description: Job not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/jobs/{jobId}/tasks:
+    get:
+      summary: Retrieve paginated execution tasks for a Job
+      operationId: getJobTasks
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Tasks successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskPageResponse'
+
+  /api/v1/jobs/{jobId}/results:
+    get:
+      summary: Retrieve paginated output results for a completed Job
+      operationId: getJobResults
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Results successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultPageResponse'
+
+  /health:
+    get:
+      summary: Liveness health check
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Application is alive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: UP
+                  timestamp:
+                    type: string
+
+  /ready:
+    get:
+      summary: Readiness probe check
+      operationId: readinessCheck
+      responses:
+        '200':
+          description: EFE engine and flows are fully initialized and ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: READY
+                  module:
+                    type: string
+                    example: trade-recon-esb
+                  activeFlows:
+                    type: integer
+                    example: 3
+
+components:
+  schemas:
+    JobSubmissionRequest:
+      type: object
+      required:
+        - jobType
+        - businessDate
+      properties:
+        jobType:
+          type: string
+          example: TRADE_RECONCILIATION
+        source:
+          type: string
+          example: CUSTODIAN
+        businessDate:
+          type: string
+          format: date
+          example: '2026-08-27'
+        payload:
+          type: object
+          description: Generic JSON payload for domain processors
+
+    JobSubmissionResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: JOB-000001
+        status:
+          type: string
+          example: REGISTERED
+        jobType:
+          type: string
+          example: TRADE_RECONCILIATION
+        acceptedAt:
+          type: string
+          format: date-time
+
+    JobStatusResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          example: JOB-000001
+        jobType:
+          type: string
+          example: TRADE_RECONCILIATION
+        status:
+          type: string
+          example: PROCESSING
+        createdAt:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    TaskSummaryResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+          example: TASK-000001
+        status:
+          type: string
+          example: PROCESSING
+        attemptCount:
+          type: integer
+          example: 1
+
+    TaskPageResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskSummaryResponse'
+
+    ResultPageResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        results:
+          type: array
+          items:
+            type: object
+
+    ErrorResponse:
+      type: object
+      properties:
+        errorCode:
+          type: string
+          example: EFE-VAL-001
+        message:
+          type: string
+          example: jobType is required
+        path:
+          type: string
+          example: /api/v1/jobs
+        timestamp:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
+          example: CORR-123456

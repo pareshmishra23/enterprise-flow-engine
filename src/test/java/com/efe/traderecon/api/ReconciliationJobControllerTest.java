@@ -1,10 +1,10 @@
 package com.efe.traderecon.api;
 
+import com.efe.traderecon.api.controller.JobController;
 import com.efe.traderecon.api.controller.ReconciliationJobController;
 import com.efe.traderecon.api.dto.ReconciliationJobRequest;
 import com.efe.traderecon.api.dto.TradeRecordDto;
 import com.efe.traderecon.ikasan.model.IkasanFlow;
-import com.efe.traderecon.persistence.spi.JobRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,21 +34,18 @@ public class ReconciliationJobControllerTest {
     private IkasanFlow tradeIngestionFlow;
 
     @Autowired
-    private JobRepository jobRepository;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
     @Autowired
     private com.efe.traderecon.ikasan.ui.IkasanDashboardController ikasanDashboardController;
 
-    private MockMvc mockMvc;
+    private MockMvc reconMockMvc;
     private MockMvc dashboardMockMvc;
 
     @BeforeEach
     void setUp() {
-        ReconciliationJobController controller = new ReconciliationJobController(tradeIngestionFlow, jobRepository);
-        this.mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        ReconciliationJobController reconController = new ReconciliationJobController(tradeIngestionFlow);
+        this.reconMockMvc = MockMvcBuilders.standaloneSetup(reconController).build();
         this.dashboardMockMvc = MockMvcBuilders.standaloneSetup(ikasanDashboardController).build();
     }
 
@@ -63,7 +60,7 @@ public class ReconciliationJobControllerTest {
                 )
         );
 
-        mockMvc.perform(post("/api/v1/jobs/reconciliation")
+        reconMockMvc.perform(post("/api/v1/jobs/reconciliation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
