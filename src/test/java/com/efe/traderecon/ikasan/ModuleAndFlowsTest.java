@@ -26,7 +26,7 @@ public class ModuleAndFlowsTest {
         assertThat(module).isNotNull();
         assertThat(module.getName()).isEqualTo("enterprise-flow-engine");
         assertThat(module.isRunning()).isTrue();
-        assertThat(module.getFlows()).hasSize(10);
+        assertThat(module.getFlows()).hasSize(11);
 
         // 1. Ingestion Flow
         Optional<IkasanFlow> ingestionFlow = module.getFlow("trade-ingestion-flow");

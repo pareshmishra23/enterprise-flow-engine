@@ -22,10 +22,11 @@
 - **Status**: COMPLETED
 - **Description**: Core demonstrator flow (`efe-core-flow`: Consumer → Converter → Validator → Processor → Router → MATCH/BREAK Producers) with `POST /api/v1/core/events` REST trigger, Cucumber acceptance tests (`core_flow.feature`), and unit tests (102/102 tests passing).
 
-### Bead EFE-005: Async Execution (NEXT)
-- **Objective**: Scheduled Quartz Consumer → Splitter → Async Worker Processor → Producer with bounded concurrency.
+### Bead EFE-005: Async Execution
+- **Status**: COMPLETED
+- **Description**: Bounded asynchronous execution flow (`efe-async-flow`: Scheduled Consumer → Task Retrieval Broker → Splitter → Bounded Worker Processor → Producer) with `EfeExecutorService` metrics and Cucumber acceptance tests (104/104 tests passing).
 
-### Bead EFE-006: Reliability
+### Bead EFE-006: Reliability (NEXT)
 - **Objective**: Resilience mechanisms: Configurable Retry policies, Error Recovery Manager, Dead Letter Queue (DLQ), and Wiretap audit logging.
 
 ### Bead EFE-007: Optional AI Component

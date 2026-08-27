@@ -77,6 +77,6 @@ public class ReconciliationJobControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.moduleName", is("enterprise-flow-engine")))
                 .andExpect(jsonPath("$.running", is(true)))
-                .andExpect(jsonPath("$.flows", hasSize(10)));
+                .andExpect(jsonPath("$.flows", hasSize(11)));
     }
 }
