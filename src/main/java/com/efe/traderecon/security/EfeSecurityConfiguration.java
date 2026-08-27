@@ -12,10 +12,29 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableMethodSecurity
-@ConditionalOnProperty(prefix = "efe.security", name = "enabled", havingValue = "true")
 public class EfeSecurityConfiguration {
 
+    /**
+     * Security-disabled path (default). When efe.security.enabled=false the local
+     * platform must remain fully open so the REST/gRPC/GraphQL/JMX/GUI demo works
+     * without credentials. Without this explicit permissive chain, Spring Security's
+     * default auto-configuration locks every endpoint behind random HTTP Basic auth.
+     */
     @Bean
+    @ConditionalOnProperty(prefix = "efe.security", name = "enabled", havingValue = "false", matchIfMissing = true)
+    SecurityFilterChain efePermissiveSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
+            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    /**
+     * Security-enabled path. Activate only when efe.security.enabled=true and an
+     * OAuth2/JWT resource server is configured (issuer-uri + audience).
+     */
+    @Bean
+    @ConditionalOnProperty(prefix = "efe.security", name = "enabled", havingValue = "true")
     SecurityFilterChain efeSecurityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
