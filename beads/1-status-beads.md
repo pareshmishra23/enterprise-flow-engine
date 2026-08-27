@@ -6,7 +6,7 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **EFE-001** | Platform foundation / Ikasan module | *Runtime* | **COMPLETED** | 16/16 Unit/Integration | Ikasan module `trade-recon-esb`, 3 flows, In-Memory Messaging & Persistence SPIs, Web UI console. |
 | **EFE-002** | Reusable REST facility + Cucumber tests | *Connectors* | **COMPLETED** | 10/10 Gherkin Scenarios (26 total) | Generic `/api/v1/jobs` contract, `Idempotency-Key`, `X-Correlation-ID`, task/result query, health/readiness, OpenAPI 3.0 spec. |
-| **EFE-003** | Generic Job & Task execution | *Runtime* | **QUEUED** | — | Generic Job state machine, batch chunking, task state transitions, execution context propagation. |
+| **EFE-003** | Platform Capability Pack | *Runtime* | **IMPLEMENTED** | — | REST/gRPC/GraphQL, JMX (`com.efe`), bounded executor, H2 DB, local AI, async/db demo flows. |
 | **EFE-004** | Scheduler | *Runtime* | **QUEUED** | — | Quartz enterprise scheduler integration with cron triggers, calendar exclusions, and clustered job execution. |
 | **EFE-005** | Messaging SPI + In-Memory | *Connectors* | **QUEUED** | — | Bounded concurrency model, backpressure thresholds, multi-topic routing, and priority queueing. |
 | **EFE-006** | Worker execution | *Runtime* | **QUEUED** | — | Dynamic worker thread pool management, asynchronous task execution workers, and CPU/IO isolation. |

@@ -58,11 +58,17 @@
 
 ---
 
-### Bead 3: EFE-003 — Generic Job & Task Execution (NEXT)
-- **Objective**: Build the generic state machine and execution lifecycle for Jobs and Tasks.
-- **Key Deliverables**:
-  - Universal Job state transitions: `SUBMITTED -> REGISTERED -> PARTITIONING -> DISPATCHED -> PROCESSING -> COMPLETED / FAILED / PARTIALLY_FAILED`.
-  - Task batch chunking & partitioning (e.g. 10K dataset split into 500-record chunks).
+### Bead EFE-003: Platform Capability Pack
+- **Scope**: REST, gRPC, GraphQL, Database access, JMX management (`com.efe`), bounded executor, scheduler, local AI/LLM SPI, demo flows (`async-demo-flow`, `db-demo-flow`, `intelligence-audit-flow`, `trade-ingestion-flow`), Dockerfile, Kubernetes manifests.
+- **Status**: IMPLEMENTED
+- **Deliverables**:
+  - `EfeJobGrpcAdapter.java`
+  - `EfeGraphQLController.java`
+  - `EfeExecutorService.java` & `EfeExecutionProperties.java`
+  - `EfeModuleMBean.java`, `EfeExecutorMBean.java`, `EfeSchedulerMBean.java`, `EfeMessagingMBean.java`
+  - `AsyncDemoFlowConfiguration.java`, `DbDemoFlowConfiguration.java`, `IntelligenceAuditFlowConfiguration.java`
+  - `Dockerfile`, `deploy/k8s/`
+  - Cucumber acceptance specs: `rest_api.feature`, `grpc_api.feature`, `graphql_api.feature`, `jmx_management.feature`, `database.feature`, `async_execution.feature`, `ai_component.feature`
   - Execution context and header propagation.
 
 ---

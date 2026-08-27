@@ -98,6 +98,14 @@ public class InMemoryQueue {
         }
     }
 
+    public int getTotalQueueSize() {
+        return queues.values().stream().mapToInt(BlockingQueue::size).sum();
+    }
+
+    public int getDefaultCapacity() {
+        return defaultCapacity;
+    }
+
     public void clearAll() {
         queues.values().forEach(BlockingQueue::clear);
     }

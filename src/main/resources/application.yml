@@ -6,6 +6,9 @@ spring:
     name: trade-recon-esb-module
   main:
     banner-mode: console
+  jmx:
+    enabled: true
+    unique-names: true
 
 esb:
   module-name: trade-recon-esb
@@ -36,3 +39,40 @@ management:
     web:
       exposure:
         include: health,info,metrics
+    jmx:
+      exposure:
+        include: "*"
+
+efe:
+  execution:
+    workers:
+      core-size: 4
+      max-size: 10
+      queue-capacity: 100
+  scheduler:
+    poll:
+      interval-ms: 5000
+  intelligence:
+    enabled: false          # Set to true when Ollama is running locally
+    provider: local
+    timeout-ms: 5000
+    local:
+      runtime: ollama
+      endpoint: http://localhost:11434
+    models:
+      llm-audit:
+        name: qwen2.5:3b
+        enabled: true
+      anomaly:
+        name: local-anomaly-v1
+        enabled: true
+      fraud:
+        name: local-fraud-rules-v1
+        enabled: true
+    sanitizer:
+      masked-fields:
+        - accountId
+        - customerId
+        - nationalId
+        - taxId
+        - iban

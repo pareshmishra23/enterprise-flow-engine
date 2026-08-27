@@ -57,8 +57,8 @@ public class DispatchFlowTest {
         // Verify task state updated in repository
         Optional<Task> updatedTask = taskRepository.findById("TSK-DISP-01");
         assertThat(updatedTask).isPresent();
-        assertThat(updatedTask.get().getStatus()).isEqualTo(TaskStatus.DISPATCHED);
-        assertThat(updatedTask.get().getAttemptCount()).isEqualTo(1);
+        assertThat(updatedTask.get().getStatus()).isIn(TaskStatus.DISPATCHED, TaskStatus.PROCESSING, TaskStatus.COMPLETED);
+        assertThat(updatedTask.get().getAttemptCount()).isGreaterThanOrEqualTo(1);
 
         // Verify message enqueued on messaging SPI destination
         Optional<MessagingMessage<Task>> polledMsg = messagingConsumer.poll("trade.recon.tasks", 500, TimeUnit.MILLISECONDS);

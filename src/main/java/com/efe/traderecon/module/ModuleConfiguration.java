@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 @Configuration
 public class ModuleConfiguration {
 
@@ -21,7 +19,10 @@ public class ModuleConfiguration {
             @Value("${esb.description:Trade Reconciliation Enterprise Service Bus}") String description,
             @Qualifier("tradeIngestionFlow") IkasanFlow ingestionFlow,
             @Qualifier("reconciliationDispatchFlow") IkasanFlow dispatchFlow,
-            @Qualifier("reconciliationProcessingFlow") IkasanFlow processingFlow) {
+            @Qualifier("reconciliationProcessingFlow") IkasanFlow processingFlow,
+            @Qualifier("intelligenceAuditFlow") IkasanFlow intelligenceAuditFlow,
+            @Qualifier("asyncDemoFlow") IkasanFlow asyncDemoFlow,
+            @Qualifier("dbDemoFlow") IkasanFlow dbDemoFlow) {
 
         ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
                 .withDescription(description);
@@ -29,6 +30,9 @@ public class ModuleConfiguration {
         moduleBuilder.addFlow(ingestionFlow);
         moduleBuilder.addFlow(dispatchFlow);
         moduleBuilder.addFlow(processingFlow);
+        moduleBuilder.addFlow(intelligenceAuditFlow);
+        moduleBuilder.addFlow(asyncDemoFlow);
+        moduleBuilder.addFlow(dbDemoFlow);
 
         return moduleBuilder.build();
     }

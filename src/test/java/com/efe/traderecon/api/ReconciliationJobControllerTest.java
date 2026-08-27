@@ -77,6 +77,6 @@ public class ReconciliationJobControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.moduleName", is("trade-recon-esb")))
                 .andExpect(jsonPath("$.running", is(true)))
-                .andExpect(jsonPath("$.flows", hasSize(3)));
+                .andExpect(jsonPath("$.flows", hasSize(6)));
     }
 }
