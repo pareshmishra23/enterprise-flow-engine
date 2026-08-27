@@ -186,7 +186,7 @@ module on the platform.
 | **EFE-008** | JMX / Operations | *Management* | **COMPLETED — FOUNDATION** | JMX `com.efe` management plane for Module, Flow, Scheduler, Executor, and Messaging. |
 | **EFE-009** | GraphQL | *API* | **COMPLETED — FOUNDATION** | Local GraphQL query/mutation adapter over common services. |
 | **EFE-010** | gRPC | *API* | **COMPLETED — FOUNDATION** | Local gRPC adapter boundary and acceptance coverage. |
-| **EFE-011** | Platform Extraction & Reconciliation Separation | *Platform* | **COMPLETED** | Extracted reusable domain-neutral `efe-platform` library + autonomous `reconciliation-example` (reference) and `platform-demo` (demonstrator); 115 tests green; dependency direction enforced (`reconciliation-example → efe-platform`). |
+| **EFE-011-A** | Platform Extraction & Reconciliation Separation | *Platform* | **COMPLETED** | Extracted reusable domain-neutral `efe-platform` library + autonomous `reconciliation-example` (reference) and `platform-demo` (demonstrator); 115 tests green; dependency direction enforced (`reconciliation-example → efe-platform`). |
 | **EFE-012** | Camel Integration | *Integration* | **PLANNED** | Apache Camel component mediation in Ikasan flows. |
 | **EFE-013** | Corporate Action Module | *Domain* | **PLANNED** | Autonomous `efe-corporate-actions` microservice (consumes efe-platform). |
 | **EFE-014** | Reconciliation Module | *Domain* | **COMPLETED — REFERENCE** | Delivered as `examples/reconciliation-example`, a reference implementation consuming efe-platform (3 reconciliation flows). |

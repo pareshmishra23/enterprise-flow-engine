@@ -214,7 +214,7 @@ onConsumerEvent --> reliability.execute(eventId, flow, doExecute)
 
 ### 5. Current implementation status and next boundary
 
-EFE-001 through EFE-010 are complete at the demonstrator/foundation level, delivering realistic Ikasan component semantics (module/flows, router branching, filter, Quartz scheduling, flow-level retry/backoff/DLQ, wiretap/AI/JMX/GraphQL). **EFE-011** split the single application into a reusable domain-neutral **EFE Platform** library and autonomous example applications:
+EFE-001 through EFE-010 are complete at the demonstrator/foundation level, delivering realistic Ikasan component semantics (module/flows, router branching, filter, Quartz scheduling, flow-level retry/backoff/DLQ, wiretap/AI/JMX/GraphQL). **EFE-011-A** split the single application into a reusable domain-neutral **EFE Platform** library and autonomous example applications:
 
 - `examples/reconciliation-example` (reference) wires its own Module `trade-recon-esb` with **3 flows** (`trade-ingestion-flow`, `reconciliation-dispatch-flow`, `reconciliation-processing-flow`) plus its own domain, processors, REST/graphql/grpc APIs, persistence and JMX. It depends only on `efe-platform`.
 - `examples/platform-demo` (demonstrator) wires Module `enterprise-flow-engine` with **8 pure-platform demo flows**.

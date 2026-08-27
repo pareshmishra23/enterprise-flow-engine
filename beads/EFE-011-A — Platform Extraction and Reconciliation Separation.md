@@ -1,4 +1,4 @@
-# EFE-011-A — Platform Extraction & Reconciliation Separation (Migration Map)
+# EFE-011-A — Platform Extraction & Reconciliation Separation (Implementation Bead)
 
 > Documents the extraction of the single `enterprise-flow-engine` application into a reusable
 > **EFE Platform** library plus **autonomous example applications**, and records every
