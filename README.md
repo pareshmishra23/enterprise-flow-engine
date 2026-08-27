@@ -90,7 +90,31 @@ Every integration process in EFE follows the standard native Ikasan component gr
 
 ---
 
-## 4. Quick Start
+## 4. Asynchronous Execution Flow (`efe-async-flow`)
+
+```text
+                         EFE PLATFORM
+                              │
+                        efe-async-flow
+                              │
+                 EFE-ASYNC-SCHEDULED-IN (Scheduled Consumer)
+                              │
+                              ▼
+                 EFE-ASYNC-TASK-BROKER (Batch Retrieval Broker)
+                              │
+                              ▼
+                 EFE-ASYNC-SPLITTER (Batch Partitioning)
+                              │
+                              ▼
+                 EFE-ASYNC-WORKER-PROCESSOR (Bounded EfeExecutorService)
+                              │
+                              ▼
+                 EFE-ASYNC-OUT (Terminal Result Producer)
+```
+
+---
+
+## 5. Quick Start
 
 ### Build & Run Tests
 ```bash
@@ -130,7 +154,7 @@ mvn spring-boot:run
 
 ---
 
-## 5. Master Roadmap & Bead Status
+## 6. Master Roadmap & Bead Status
 
 | Bead | Title | Category | Status | Summary |
 | :--- | :--- | :--- | :--- | :--- |
@@ -138,8 +162,8 @@ mvn spring-boot:run
 | **EFE-002** | REST + Cucumber | *Connectors* | **COMPLETED** | Reusable REST `/api/v1/jobs` contract, idempotency, Cucumber specs. |
 | **EFE-003** | Real Ikasan Foundation | *Runtime* | **COMPLETED** | Real Ikasan Module, Flows, Consumers, Processors, Brokers, and Routers. |
 | **EFE-004** | Core Flow Demonstrator | *Flows* | **COMPLETED** | Canonical `efe-core-flow` with MATCH/BREAK routing and REST trigger. |
-| **EFE-005** | Async Execution | *Execution* | **NEXT** | Scheduled Consumer → Splitter → Processor → Producer (Bounded Pool). |
-| **EFE-006** | Reliability | *Operations* | **PLANNED** | Retry policies, Recovery manager, Dead Letter Queue (DLQ), Wiretap. |
+| **EFE-005** | Async Execution | *Execution* | **COMPLETED** | Scheduled Consumer → Task Retrieval → Splitter → Bounded Worker Pool → Producer. |
+| **EFE-006** | Reliability | *Operations* | **NEXT** | Resilience patterns: Retry policies, Recovery manager, DLQ, Wiretap. |
 | **EFE-007** | Optional AI Component | *Intelligence* | **PLANNED** | AI Processor → Ollama Local Runtime + PII Sanitizer. |
 | **EFE-008** | JMX / Operations | *Management* | **PLANNED** | JMX `com.efe` management plane for Module, Flow, Scheduler, Executor. |
 | **EFE-009** | GraphQL | *API* | **PLANNED** | GraphQL queries and mutations layer. |
