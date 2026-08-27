@@ -9,7 +9,10 @@ public class IkasanWebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addRedirectViewController("/ikasan", "/ikasan/index.html");
-        registry.addRedirectViewController("/ikasan/", "/ikasan/index.html");
+        registry.addRedirectViewController("/", "/index.html");
+        registry.addRedirectViewController("/console", "/index.html");
+        registry.addRedirectViewController("/console/", "/index.html");
+        registry.addRedirectViewController("/ikasan", "/index.html");
+        registry.addRedirectViewController("/ikasan/", "/index.html");
     }
 }
