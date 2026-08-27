@@ -4,16 +4,16 @@
 
 | Bead ID | Title | Pillar | Scope & Milestone Description |
 | :--- | :--- | :--- | :--- |
-| **EFE-001** | **Platform foundation / Ikasan module** | *Runtime* | **[COMPLETED]** Foundational Ikasan module architecture, core flow lifecycle, In-Memory SPI skeletons, REST entrypoint, and UI console. |
-| **EFE-002** | **Generic Flow definition** | *Runtime* | Universal DSL and metadata-driven declarative flow definition framework with dynamic element wiring. |
-| **EFE-003** | **Generic Job & Task execution** | *Runtime* | Generic state machine for Jobs & Tasks, batch partitioning, task state transitions, and execution context. |
-| **EFE-004** | **Scheduler** | *Runtime* | Quartz enterprise scheduler integration with cron triggers, calendar exclusions, and clustered job execution. |
-| **EFE-005** | **Messaging SPI + In-Memory** | *Connectors* | Enhanced bounded concurrency model, backpressure thresholds, multi-topic routing, and priority queueing. |
-| **EFE-006** | **Worker execution** | *Runtime* | Dynamic worker thread pool management, asynchronous task execution workers, and CPU/IO isolation. |
-| **EFE-007** | **Retry / Idempotency / DLQ model** | *Runtime* | Exponential backoff, jittered retries, deterministic deduplication tokens, and Dead Letter Queue (DLQ) routing. |
-| **EFE-008** | **Persistence SPI** | *Runtime* | Pluggable persistence providers with transactional semantics (H2, PostgreSQL, MongoDB). |
-| **EFE-009** | **REST API framework** | *Connectors* | Generic REST ingestion framework, OpenAPI/Swagger 3 specs, async job submission, and webhook callbacks. |
-| **EFE-010** | **Observability / Operations** | *Operations* | Distributed tracing (OpenTelemetry/W3C context), Prometheus metrics, audit trail wiretap, and alerts. |
+| **EFE-001** | **Platform foundation / Ikasan module** | *Runtime* | **[COMPLETED]** Foundational Spring Boot module, domain baseline, in-memory SPI skeletons, REST entrypoint, and UI console. |
+| **EFE-002** | **REST + Cucumber facility** | *Connectors* | **[COMPLETED]** Generic REST job contract, idempotency/correlation headers, queries, health/readiness, and acceptance tests. |
+| **EFE-003** | **Real Ikasan foundation** | *Runtime* | **[COMPLETED]** Ikasan component contracts, Module/Flow builders, foundation flows, router branching, and runtime console proof. |
+| **EFE-004** | **Core flow demonstrator** | *Flows* | **[COMPLETED]** REST Consumer → Converter → Validator → Processor → Router → MATCH/BREAK Producers. |
+| **EFE-005** | **Async execution** | *Execution* | **[COMPLETED]** Scheduled Consumer → Task Broker → Splitter → bounded worker processor → Producer; 104/104 tests passing. |
+| **EFE-006** | **Reliability / recovery / DLQ** | *Operations* | **[COMPLETED — FOUNDATION]** Classified retry/backoff, in-memory DLQ, wiretap/audit, async worker integration, executor shutdown; 107/107 tests passing. |
+| **EFE-007** | **Optional AI component** | *Intelligence* | **[NEXT]** Optional AI processor with local Ollama runtime, PII sanitizer, structured output, timeout, and fallback policy. |
+| **EFE-008** | **JMX / operations** | *Operations* | Module, Flow, Scheduler, Executor, and Messaging management with a private management plane. |
+| **EFE-009** | **GraphQL API** | *Connectors* | Optional query/mutation adapter delegating to common application services with query-complexity controls. |
+| **EFE-010** | **gRPC API** | *Connectors* | Deferred machine-to-machine adapter using protobuf and common application services. |
 | **EFE-011** | **Kafka plugin** | *Connectors* | Production Kafka producer/consumer adapters, partition key routing, consumer group rebalance handlers. |
 | **EFE-012** | **RabbitMQ plugin** | *Connectors* | AMQP 0-9-1 exchange bindings, publisher confirms, channel pooling, and dead-letter exchanges. |
 | **EFE-013** | **AMQ/JMS plugin** | *Connectors* | Jakarta JMS 3.x provider for Apache ActiveMQ / Artemis, transactional sessions, and XA support. |

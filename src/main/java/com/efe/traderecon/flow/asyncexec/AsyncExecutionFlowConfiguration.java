@@ -1,6 +1,7 @@
 package com.efe.traderecon.flow.asyncexec;
 
 import com.efe.traderecon.execution.EfeExecutorService;
+import com.efe.traderecon.reliability.ReliabilityService;
 import com.efe.traderecon.ikasan.builder.FlowBuilder;
 import com.efe.traderecon.ikasan.model.*;
 import org.slf4j.Logger;
@@ -108,9 +109,11 @@ public class AsyncExecutionFlowConfiguration {
     public static class EfeAsyncWorkerProcessor implements IkasanProcessor<Map<String, Object>, Map<String, Object>> {
         private static final Logger log = LoggerFactory.getLogger(EfeAsyncWorkerProcessor.class);
         private final EfeExecutorService executorService;
+        private final ReliabilityService reliabilityService;
 
-        public EfeAsyncWorkerProcessor(EfeExecutorService executorService) {
+        public EfeAsyncWorkerProcessor(EfeExecutorService executorService, ReliabilityService reliabilityService) {
             this.executorService = executorService;
+            this.reliabilityService = reliabilityService;
         }
 
         @Override public String getName() { return "EFE-ASYNC-WORKER-PROCESSOR"; }
@@ -118,15 +121,17 @@ public class AsyncExecutionFlowConfiguration {
         @Override
         public Map<String, Object> process(Map<String, Object> task) {
             Map<String, Object> result = new HashMap<>(task);
-            // Execute bounded asynchronous task computation
-            Future<String> future = executorService.submit(() -> {
-                String threadName = Thread.currentThread().getName();
-                log.debug("Worker thread [{}] executing async task [{}]", threadName, task.get("taskId"));
-                return "COMPLETED_ON_" + threadName;
-            });
-
+            // Submit fresh bounded worker work for every reliability attempt.
             try {
-                String executionOutcome = future.get(3, TimeUnit.SECONDS);
+                String executionOutcome = reliabilityService.execute(
+                        String.valueOf(task.get("taskId")), FLOW_NAME, () -> {
+                            Future<String> future = executorService.submit(() -> {
+                                String threadName = Thread.currentThread().getName();
+                                log.debug("Worker thread [{}] executing async task [{}]", threadName, task.get("taskId"));
+                                return "COMPLETED_ON_" + threadName;
+                            });
+                            return future.get(3, TimeUnit.SECONDS);
+                        });
                 result.put("status", "COMPLETED");
                 result.put("workerOutcome", executionOutcome);
                 result.put("completedAt", System.currentTimeMillis());

@@ -163,8 +163,8 @@ mvn spring-boot:run
 | **EFE-003** | Real Ikasan Foundation | *Runtime* | **COMPLETED** | Real Ikasan Module, Flows, Consumers, Processors, Brokers, and Routers. |
 | **EFE-004** | Core Flow Demonstrator | *Flows* | **COMPLETED** | Canonical `efe-core-flow` with MATCH/BREAK routing and REST trigger. |
 | **EFE-005** | Async Execution | *Execution* | **COMPLETED** | Scheduled Consumer → Task Retrieval → Splitter → Bounded Worker Pool → Producer. |
-| **EFE-006** | Reliability | *Operations* | **NEXT** | Resilience patterns: Retry policies, Recovery manager, DLQ, Wiretap. |
-| **EFE-007** | Optional AI Component | *Intelligence* | **PLANNED** | AI Processor → Ollama Local Runtime + PII Sanitizer. |
+| **EFE-006** | Reliability | *Operations* | **COMPLETED — FOUNDATION** | Classified retry/backoff, in-memory DLQ, wiretap/audit records, async worker integration, and executor shutdown; 107/107 tests passing. |
+| **EFE-007** | Optional AI Component | *Intelligence* | **NEXT** | AI Processor → Ollama Local Runtime + PII Sanitizer. |
 | **EFE-008** | JMX / Operations | *Management* | **PLANNED** | JMX `com.efe` management plane for Module, Flow, Scheduler, Executor. |
 | **EFE-009** | GraphQL | *API* | **PLANNED** | GraphQL queries and mutations layer. |
 | **EFE-010** | gRPC | *API* | **PLANNED** | gRPC Protobuf high-performance adapter. |
