@@ -131,19 +131,43 @@ public class IkasanFlow {
                     switch (element.getType()) {
                         case CONVERTER -> {
                             IkasanConverter converter = (IkasanConverter) element.getComponent();
-                            currentPayload = converter.convert(currentPayload);
+                            if (currentPayload instanceof List<?> list) {
+                                List<Object> converted = new ArrayList<>();
+                                for (Object item : list) converted.add(converter.convert(item));
+                                currentPayload = converted;
+                            } else {
+                                currentPayload = converter.convert(currentPayload);
+                            }
                         }
                         case TRANSLATOR -> {
                             IkasanTranslator translator = (IkasanTranslator) element.getComponent();
-                            currentPayload = translator.translate(currentPayload);
+                            if (currentPayload instanceof List<?> list) {
+                                List<Object> translated = new ArrayList<>();
+                                for (Object item : list) translated.add(translator.translate(item));
+                                currentPayload = translated;
+                            } else {
+                                currentPayload = translator.translate(currentPayload);
+                            }
                         }
                         case PROCESSOR -> {
                             IkasanProcessor processor = (IkasanProcessor) element.getComponent();
-                            currentPayload = processor.process(currentPayload);
+                            if (currentPayload instanceof List<?> list) {
+                                List<Object> processed = new ArrayList<>();
+                                for (Object item : list) processed.add(processor.process(item));
+                                currentPayload = processed;
+                            } else {
+                                currentPayload = processor.process(currentPayload);
+                            }
                         }
                         case BROKER -> {
                             IkasanBroker broker = (IkasanBroker) element.getComponent();
-                            currentPayload = broker.invoke(currentPayload);
+                            if (currentPayload instanceof List<?> list) {
+                                List<Object> brokered = new ArrayList<>();
+                                for (Object item : list) brokered.add(broker.invoke(item));
+                                currentPayload = brokered;
+                            } else {
+                                currentPayload = broker.invoke(currentPayload);
+                            }
                         }
                         case SPLITTER -> {
                             IkasanSplitter splitter = (IkasanSplitter) element.getComponent();
@@ -151,11 +175,20 @@ public class IkasanFlow {
                         }
                         case FILTER -> {
                             IkasanFilter filter = (IkasanFilter) element.getComponent();
-                            boolean accepted = filter.accept(currentPayload);
-                            if (!accepted) {
-                                log.debug("Event filtered out by filter component [{}]", element.getName());
-                                currentPayload = null;
-                                routeTerminated = true;
+                            if (currentPayload instanceof List<?> list) {
+                                List<Object> filtered = new ArrayList<>();
+                                for (Object item : list) {
+                                    if (filter.accept(item)) filtered.add(item);
+                                }
+                                currentPayload = filtered;
+                                if (filtered.isEmpty()) routeTerminated = true;
+                            } else {
+                                boolean accepted = filter.accept(currentPayload);
+                                if (!accepted) {
+                                    log.debug("Event filtered out by filter component [{}]", element.getName());
+                                    currentPayload = null;
+                                    routeTerminated = true;
+                                }
                             }
                         }
                         case ROUTER -> {

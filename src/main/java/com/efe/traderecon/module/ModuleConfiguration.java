@@ -15,9 +15,10 @@ public class ModuleConfiguration {
     @Bean
     public IkasanModule tradeReconModule(
             BuilderFactory builderFactory,
-            @Value("${esb.module-name:trade-recon-esb}") String moduleName,
-            @Value("${esb.description:Trade Reconciliation Enterprise Service Bus}") String description,
+            @Value("${esb.module-name:enterprise-flow-engine}") String moduleName,
+            @Value("${esb.description:Enterprise Flow Engine Platform Runtime}") String description,
             @Qualifier("efeCoreFlow") IkasanFlow coreFlow,
+            @Qualifier("efeAsyncFlow") IkasanFlow asyncFlow,
             @Qualifier("efeFoundationFlow") IkasanFlow foundationFlow,
             @Qualifier("efeScheduledFoundationFlow") IkasanFlow scheduledFoundationFlow,
             @Qualifier("efeRouterFoundationFlow") IkasanFlow routerFoundationFlow,
@@ -32,6 +33,7 @@ public class ModuleConfiguration {
                 .withDescription(description);
 
         moduleBuilder.addFlow(coreFlow);
+        moduleBuilder.addFlow(asyncFlow);
         moduleBuilder.addFlow(foundationFlow);
         moduleBuilder.addFlow(scheduledFoundationFlow);
         moduleBuilder.addFlow(routerFoundationFlow);

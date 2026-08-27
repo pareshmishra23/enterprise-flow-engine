@@ -16,7 +16,7 @@
 | **EFE-002** | REST + Cucumber | *Connectors* | **COMPLETED** | 10/10 Gherkin Scenarios | Generic `/api/v1/jobs` REST contract, `Idempotency-Key`, `X-Correlation-ID`, task/result query, health/readiness, Cucumber acceptance specs. |
 | **EFE-003** | Real Ikasan Foundation | *Runtime* | **COMPLETED** | 95/95 Tests (3 new Gherkin specs) | Native Ikasan Module, Flows, Consumers, Processors, Brokers, Routers, and Producers with multi-route branching. |
 | **EFE-004** | Core Flow Demonstrator | *Flows* | **COMPLETED** | 102/102 Tests (core_flow.feature) | End-to-end core flow: Consumer → Converter → Validator → Processor → Router → MATCH/BREAK Producers. |
-| **EFE-005** | Async Execution | *Execution* | **PLANNED** | — | Scheduled Consumer → Splitter → Processor → Producer using bounded worker execution. |
+| **EFE-005** | Async Execution | *Execution* | **COMPLETED** | 104/104 Tests (async_execution_flow.feature) | Scheduled Consumer → Task Retrieval Broker → Splitter → Bounded Worker Processor → Producer. |
 | **EFE-006** | Reliability | *Operations* | **PLANNED** | — | Resilience patterns: Retry policies, Recovery manager, Dead Letter Queue (DLQ), Wiretap message logging. |
 | **EFE-007** | Optional AI Component | *Intelligence* | **PLANNED** | — | Optional AI processing component: AI Processor → local Ollama model runtime, PII sanitizer, fallback rules. |
 | **EFE-008** | JMX / Operations | *Management* | **PLANNED** | — | JMX management surface under `com.efe` domain for Module, Flow, Executor, Scheduler, and Messaging control. |
