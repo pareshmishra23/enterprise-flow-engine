@@ -14,14 +14,9 @@
 
 ## Active & Upcoming Roadmap
 
-### Bead EFE-003: Real Ikasan Foundation (NEXT)
-- **Objective**: Establish the true, native Ikasan 5.x engine foundation and retire custom engine mocks.
-- **Key Deliverables**:
-  - Real Ikasan Module definition.
-  - Real Ikasan Flows with standard lifecycle states (`RUNNING`, `STOPPED`, `PAUSED`).
-  - Real Consumers implementing native Ikasan consumer patterns.
-  - Real Component chain (Converters, Translators, Brokers, Splitters, Filters, Routers, Processors).
-  - Real Producers (terminal endpoints).
+### Bead EFE-003: Real Ikasan Foundation
+- **Status**: COMPLETED
+- **Description**: Real Ikasan component contracts (`IkasanConsumer`, `IkasanConverter`, `IkasanTranslator`, `IkasanProcessor`, `IkasanBroker`, `IkasanSplitter`, `IkasanFilter`, `IkasanRouter`, `IkasanProducer`), `ModuleBuilder`, `FlowBuilder`, and foundation flows (`efe-foundation-flow`, `efe-scheduled-foundation-flow`, `efe-router-foundation-flow`) verified with 95/95 passing tests.
 
 ### Bead EFE-004: Core Flow Demonstrator
 - **Objective**: Implement the primary canonical Ikasan flow pattern: `REST Consumer → Converter → Processor → Router → 2 Producers (PASS / REVIEW)`.

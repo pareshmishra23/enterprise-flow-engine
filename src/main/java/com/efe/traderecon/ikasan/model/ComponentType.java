@@ -7,6 +7,7 @@ public enum ComponentType {
     BROKER,
     SPLITTER,
     FILTER,
+    PROCESSOR,
     ROUTER,
     PRODUCER
 }
