@@ -1,0 +1,153 @@
+%% ============================================================================
+%% Enterprise Flow Engine (EFE) — Complete Architecture & Topology Diagrams
+%% ============================================================================
+
+%% ----------------------------------------------------------------------------
+%% 1. Target Multi-Module Ecosystem & Kubernetes Autonomous Deployment
+%% ----------------------------------------------------------------------------
+graph TD
+    subgraph EFE_PLATFORM ["EFE Platform & Foundation (Reusable SDK)"]
+        CORE["efe-core\n(Domain SPIs, Contracts)"]
+        IKASAN["efe-ikasan\n(Engine, Flow Builders)"]
+        API["efe-api\n(REST, gRPC, GraphQL)"]
+        EXEC["efe-execution\n(Bounded Worker Pool, Quartz)"]
+        CONN["efe-connectors\n(In-Memory, Kafka, JMS, Redis)"]
+        AI["efe-ai\n(Intelligence SPI, Ollama, Sanitizer)"]
+        MGMT["efe-management\n(JMX com.efe, Health, Metrics)"]
+    end
+
+    EFE_PLATFORM -.-> CA_POD
+    EFE_PLATFORM -.-> RECON_POD
+    EFE_PLATFORM -.-> ELECTIVE_POD
+    EFE_PLATFORM -.-> AI_POD
+
+    subgraph K8S_CLUSTER ["Kubernetes Cluster / Autonomous Deployments"]
+        subgraph CA_SVC ["Corporate Actions Service (efe-corporate-actions)"]
+            CA_POD["Spring Boot Pod (x3)\nIkasan Module: ca-module"]
+            CA_FLOW1["EVENT-INGEST-FLOW"]
+            CA_FLOW2["ENTITLEMENT-FLOW"]
+            CA_FLOW3["ELECTION-FLOW"]
+            CA_POD --> CA_FLOW1
+            CA_POD --> CA_FLOW2
+            CA_POD --> CA_FLOW3
+        end
+
+        subgraph RECON_SVC ["Reconciliation Service (efe-reconciliation)"]
+            RECON_POD["Spring Boot Pod (x5)\nIkasan Module: recon-module"]
+            RECON_FLOW1["TRADE-INGEST-FLOW"]
+            RECON_FLOW2["DISPATCH-FLOW"]
+            RECON_FLOW3["MATCHING-FLOW"]
+            RECON_POD --> RECON_FLOW1
+            RECON_POD --> RECON_FLOW2
+            RECON_POD --> RECON_FLOW3
+        end
+
+        subgraph ELECTIVE_SVC ["Electives Service (efe-electives)"]
+            ELECTIVE_POD["Spring Boot Pod (x2)\nIkasan Module: elective-module"]
+            ELEC_FLOW1["EVENT-INGEST-FLOW"]
+            ELEC_FLOW2["VALIDATION-FLOW"]
+            ELEC_FLOW3["INSTRUCTION-FLOW"]
+            ELECTIVE_POD --> ELEC_FLOW1
+            ELECTIVE_POD --> ELEC_FLOW2
+            ELECTIVE_POD --> ELEC_FLOW3
+        end
+
+        subgraph AI_SVC ["AI Audit Service (Optional Dedicated Microservice)"]
+            AI_POD["Spring Boot Pod (x2)\nIkasan Module: ai-audit-module"]
+            AI_FLOW1["AI-AUDIT-FLOW"]
+            AI_POD --> AI_FLOW1
+        end
+    end
+
+%% ----------------------------------------------------------------------------
+%% 2. Universal Ikasan Flow Component Pipeline
+%% ----------------------------------------------------------------------------
+flowchart LR
+    subgraph IKASAN_FLOW ["Universal Ikasan Flow Lifecycle"]
+        CONSUMER["1. Consumer\n(Single Ingress Endpoint:\nREST / Quartz / Kafka / JMS)"]
+        --> CONVERTER["2. Converter\n(Format Transformation:\nJSON / XML / Protobuf)"]
+        --> TRANSLATOR["3. Translator\n(Enrichment / Validation / Headers)"]
+        --> BROKER["4. Broker\n(Sync Lookup / DB Access)"]
+        --> SPLITTER["5. Splitter\n(Batch Partitioning)"]
+        --> PROCESSOR["6. Processor\n(Domain Business Rules / AI Audit)"]
+        --> ROUTER{"7. Router\n(Decision Branching)"}
+        ROUTER -->|PASS / NORMAL| PRODUCER1["8a. Producer / Endpoint\n(Outbound Kafka / REST / DB)"]
+        ROUTER -->|REVIEW / BREAK| PRODUCER2["8b. Investigation Producer\n(DLQ / Manual Review Queue)"]
+    end
+
+%% ----------------------------------------------------------------------------
+%% 3. Platform Capability Pack (EFE Core Subsystems)
+%% ----------------------------------------------------------------------------
+graph TB
+    subgraph PLATFORM_CAPABILITIES ["EFE Platform Capability Pack"]
+        subgraph INGRESS_LAYER ["Multi-Protocol Ingress Adapters"]
+            REST_API["REST API\nPOST /api/v1/jobs\nGET /api/v1/jobs/{id}"]
+            GRPC_API["gRPC Adapter\nSubmitJob / GetJob"]
+            GRAPHQL_API["GraphQL Controller\njob, tasks, results, submitJob"]
+        end
+
+        subgraph ORCHESTRATION_LAYER ["Flow Engine & Execution"]
+            IKASAN_ENGINE["Ikasan 5.0.x Engine\nModuleBuilder / FlowBuilder"]
+            WORKER_POOL["EfeExecutorService\n(Bounded ArrayBlockingQueue,\nCore: 4, Max: 10, Q: 100)"]
+            SCHEDULER["Quartz Scheduled Consumer\n(Interval / Cron / Calendar)"]
+        end
+
+        subgraph MANAGEMENT_LAYER ["Operational Visibility & JMX (com.efe)"]
+            JMX_MODULE["EfeModuleMBean\n(Status, Flows, Start/Stop)"]
+            JMX_EXEC["EfeExecutorMBean\n(Active, Pool, Queue, Tasks)"]
+            JMX_SCHED["EfeSchedulerMBean\n(Interval, Next/Last Execution)"]
+            JMX_MSG["EfeMessagingMBean\n(Queue Depth, Capacity)"]
+        end
+
+        subgraph STORAGE_TRANSPORT ["Persistence & Transport SPIs"]
+            DB_BROKER["H2 / SQL Database Broker\n(Job, Task, Result CRUD)"]
+            MSG_SPI["Messaging SPI\n(In-Memory / Kafka / JMS / Redis)"]
+        end
+
+        subgraph AI_PLUGIN ["Optional Local AI Layer"]
+            AI_ROUTER["Intelligence Router Broker"]
+            OLLAMA["Ollama Client (Local Model)"]
+            RULES["Local Anomaly & Fraud Rules"]
+            SANITIZER["PII Data Sanitizer (Masking)"]
+            AGGREGATOR["Intelligence Aggregator"]
+        end
+    end
+
+    INGRESS_LAYER --> IKASAN_ENGINE
+    IKASAN_ENGINE --> WORKER_POOL
+    IKASAN_ENGINE --> SCHEDULER
+    IKASAN_ENGINE --> DB_BROKER
+    IKASAN_ENGINE --> MSG_SPI
+    IKASAN_ENGINE --> AI_ROUTER
+    AI_ROUTER --> SANITIZER
+    SANITIZER --> OLLAMA
+    SANITIZER --> RULES
+    OLLAMA --> AGGREGATOR
+    RULES --> AGGREGATOR
+
+%% ----------------------------------------------------------------------------
+%% 4. AI-Assisted Ikasan Event Flow & Safe Fallback
+%% ----------------------------------------------------------------------------
+sequenceDiagram
+    autonumber
+    participant C as Ikasan Consumer
+    participant S as AiDataSanitizer
+    participant R as IntelligenceRouter
+    participant O as Ollama (Local Model)
+    participant F as Fallback / Rules
+    participant A as Aggregator
+    participant P as Ikasan Producer
+
+    C->>S: Event Payload (contains sensitive fields)
+    S->>S: Mask PII (accountId, IBAN, nationalId)
+    S->>R: Sanitized IntelligenceRequest
+    alt AI Enabled & Ollama Reachable
+        R->>O: HTTP POST /api/generate (qwen2.5:3b)
+        O-->>R: JSON Response (decision, confidence, reason)
+    else AI Disabled or Timeout/Failure
+        R->>F: NoOp / Heuristic Error Fallback
+        F-->>R: Structured Error Code (AI_TIMEOUT / SKIPPED)
+    end
+    R->>A: Collect Provider Results
+    A->>A: Generate IntelligenceSummary (HOLD / REVIEW / PROCEED)
+    A->>P: Enriched Event into Next Ikasan Flow Step
