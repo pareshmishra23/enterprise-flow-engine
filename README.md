@@ -174,3 +174,41 @@ mvn spring-boot:run
 | **EFE-014** | Reconciliation Module | *Domain* | **PLANNED** | Autonomous `efe-reconciliation` microservice. |
 | **EFE-015** | Electives Module | *Domain* | **PLANNED** | Autonomous `efe-electives` microservice. |
 | **EFE-016** | Docker / K8s Production Packaging | *Deployment* | **PLANNED** | Multi-module containers, Helm charts, and K8s manifests. |
+
+
+## 7. EFE-006 Reliability Foundation
+
+EFE-006 provides reusable reliability behavior for asynchronous flow operations. It is integrated through `ReliabilityService` and keeps retry policy, failure classification, DLQ handling, and audit recording outside domain processors.
+
+```text
+Async worker operation
+        |
+        v
+  ReliabilityService
+    |       |       |
+ SUCCESS  RETRY    DLQ
+    |       |       |
+  Audit  Backoff  Audit + DeadLetterQueue
+```
+
+Current defaults are configured in `src/main/resources/application.yml`:
+
+```yaml
+efe:
+  reliability:
+    max-retries: 3
+    initial-delay-ms: 100
+    backoff-multiplier: 2.0
+    max-delay-ms: 10000
+    dlq-capacity: 1000
+```
+
+The foundation includes classified retry behavior, capped exponential backoff, a bounded in-memory DLQ, `ReliabilityAuditTrail` records for `SUCCESS`, `RETRY`, and `DLQ`, fresh worker submission on each retry, and clean executor shutdown through Spring lifecycle management.
+
+The verified suite currently passes with **107 tests, 0 failures, 0 errors, and 0 skipped tests**:
+
+```bash
+mvn -B clean test
+```
+
+This is a foundation rather than a production delivery guarantee. Durable broker acknowledgement, persistent DLQ storage, transactional outbox/inbox, restart recovery, authenticated replay, and persistent audit storage remain future hardening work under the reliability and connector roadmap. DLQ operations must eventually be isolated behind a private OAuth2/OIDC-protected management plane.
