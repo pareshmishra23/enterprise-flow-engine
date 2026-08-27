@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: trade-recon-esb-module
+  main:
+    banner-mode: console
+
+esb:
+  module-name: trade-recon-esb
+  description: Trade Reconciliation Enterprise Service Bus
+
+messaging:
+  provider: inmemory
+  queue:
+    capacity: 1000
+
+persistence:
+  provider: inmemory
+
+scheduler:
+  reconciliation-dispatch:
+    enabled: true
+    interval-ms: 5000
+
+worker:
+  pool-size: 10
+
+task:
+  batch-size: 100
+  max-retries: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
