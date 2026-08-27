@@ -24,7 +24,7 @@ public class ModuleAndFlowsTest {
     void shouldInitializeModuleAndFlows() {
         IkasanModule module = ikasanEngine.getModule();
         assertThat(module).isNotNull();
-        assertThat(module.getName()).isEqualTo("trade-recon-esb");
+        assertThat(module.getName()).isEqualTo("enterprise-flow-engine");
         assertThat(module.isRunning()).isTrue();
         assertThat(module.getFlows()).hasSize(10);
 

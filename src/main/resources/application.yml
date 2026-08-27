@@ -11,8 +11,8 @@ spring:
     unique-names: true
 
 esb:
-  module-name: trade-recon-esb
-  description: Trade Reconciliation Enterprise Service Bus
+  module-name: enterprise-flow-engine
+  description: Enterprise Flow Engine Platform Runtime
 
 messaging:
   provider: inmemory

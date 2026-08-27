@@ -75,7 +75,7 @@ public class ReconciliationJobControllerTest {
     void shouldRetrieveModuleDetails() throws Exception {
         dashboardMockMvc.perform(get("/api/v1/ikasan/module"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.moduleName", is("trade-recon-esb")))
+                .andExpect(jsonPath("$.moduleName", is("enterprise-flow-engine")))
                 .andExpect(jsonPath("$.running", is(true)))
                 .andExpect(jsonPath("$.flows", hasSize(10)));
     }

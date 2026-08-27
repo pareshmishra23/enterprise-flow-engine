@@ -13,7 +13,7 @@ import java.util.List;
 
 @Component
 @ManagedResource(
-        objectName = "com.efe:type=Module,name=trade-recon-esb",
+        objectName = "com.efe:type=Module,name=enterprise-flow-engine",
         description = "EFE Platform Module JMX Management"
 )
 public class EfeModuleMBean {

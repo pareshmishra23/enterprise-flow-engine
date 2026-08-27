@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "esb")
 public class EsbProperties {
 
-    private String moduleName = "trade-recon-esb";
-    private String description = "Trade Reconciliation Enterprise Service Bus";
+    private String moduleName = "enterprise-flow-engine";
+    private String description = "Enterprise Flow Engine Platform Runtime";
 
     public String getModuleName() {
         return moduleName;

@@ -255,19 +255,34 @@ public class PlatformCapabilitySteps {
     @Given("EFE JMX management is enabled")
     public void efeJmxManagementIsEnabled() throws Exception {
         MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-        moduleObjectName = new ObjectName("com.efe:type=Module,name=trade-recon-esb");
+        moduleObjectName = new ObjectName("com.efe:type=Module,name=enterprise-flow-engine");
         executorObjectName = new ObjectName("com.efe:type=Executor,name=worker-pool");
         jmxAvailable = mBeanServer != null;
         assertThat(jmxAvailable).isTrue();
+    }
+
+    @When("I query the JMX MBean for the module")
+    public void iQueryTheJmxMBeanForTheModule() throws Exception {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        moduleObjectName = new ObjectName("com.efe:type=Module,name=enterprise-flow-engine");
+        assertThat(mBeanServer.isRegistered(moduleObjectName)).isTrue();
+    }
+
+    @When("I query the JMX MBean for the flows")
+    public void iQueryTheJmxMBeanForTheFlows() throws Exception {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        if (moduleObjectName == null) {
+            moduleObjectName = new ObjectName("com.efe:type=Module,name=enterprise-flow-engine");
+        }
+        assertThat(mBeanServer.isRegistered(moduleObjectName)).isTrue();
     }
 
     @When("I read the EFE module status through JMX")
     public void iReadTheEfeModuleStatusThroughJmx() throws Exception {
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         if (moduleObjectName == null) {
-            moduleObjectName = new ObjectName("com.efe:type=Module,name=trade-recon-esb");
+            moduleObjectName = new ObjectName("com.efe:type=Module,name=enterprise-flow-engine");
         }
-        // Query attribute or bean directly
         Object status = mbs.isRegistered(moduleObjectName)
                 ? mbs.getAttribute(moduleObjectName, "Status")
                 : "RUNNING";
