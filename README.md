@@ -12,77 +12,87 @@
 **EFE (Enterprise Flow Engine)** is a high-throughput, decoupled enterprise integration platform designed for complex asynchronous workflows such as **Trade Reconciliation** and **Corporate Actions**. Built upon the **Ikasan Enterprise Integration Platform (EIP)** component model, EFE establishes clean separation between platform runtime, transport connectors, observability, and domain processors.
 
 ```text
-                                   EFE PLATFORM
-                                        │
-        ┌───────────────────────────────┼───────────────────────────────┐
-        │                               │                               │
-     Runtime                        Connectors                      Operations
-        │                               │                               │
-        ├── Flow Engine                 ├── Kafka Adapter               ├── Audit Logging
-        ├── Task Execution              ├── JMS / AMQ Adapter           ├── Metrics & KPIs
-        ├── Job Orchestration           ├── REST / HTTP Adapter         ├── Wiretap & Trace
-        ├── Quartz Scheduler            ├── SFTP Adapter                └── Health Checks
-        ├── Retry & DLQ                 └── File / S3 Adapter
-        └── In-Memory / Queue SPI
-                                        │
-                                        ▼
-                               PROJECT APPLICATION
-                            (Trade Reconciliation ESB)
-                                        │
-             ┌──────────────────────────┼──────────────────────────┐
-             │                          │                          │
-          Domain                    Processor                    Rules
-             │                          │                          │
-        ├── Trade                  └── TaskProcessor SPI       └── Match / Break
-        ├── ReconciliationJob           └── TradeReconProcessor    └── Tolerance & Diff
-        └── ReconciliationResult
+                         EFE PLATFORM
+                     (Reusable Foundation)
+                              │
+                ┌─────────────┴─────────────┐
+                │                           │
+         EFE Runtime / SDK            EFE Components
+                │                           │
+         Ikasan Runtime             REST / SFTP / JMS
+         Configuration              Kafka / Redis / etc.
+         Operations / JMX           Common Utilities
+                │
+     ═════════════════════════════════════════════════════
+     │              │               │            │
+     ▼              ▼               ▼            ▼
+ Corporate      Trade Recon     Elective      AI Audit
+  Actions         Module         Module        Module
+  Module            │               │            │
+     │         Spring Boot     Spring Boot  Spring Boot
+Spring Boot         │               │            │
+     │         Ikasan Module   Ikasan Module Ikasan Module
+Ikasan Module       │               │            │
+     │            Flows           Flows        Flows
+   Flows            │               │            │
+     │        Container/Pod   Container/Pod Container/Pod
+Container/Pod
 ```
 
 ---
 
-## 2. Core Ikasan Flows (`trade-recon-esb-module`)
+## 2. Universal Ikasan Flow Pipeline
+
+Every integration process in EFE follows the standard native Ikasan component graph:
 
 ```text
-                                  TRADE-RECON-ESB MODULE
-                                             │
-         ┌───────────────────────────────────┼───────────────────────────────────┐
-         │                                   │                                   │
-         ▼                                   ▼                                   ▼
-┌─────────────────────────┐         ┌─────────────────────────┐         ┌─────────────────────────┐
-│  TRADE INGESTION FLOW   │         │ RECON DISPATCH FLOW     │         │ RECON PROCESSING FLOW   │
-│                         │         │                         │         │                         │
-│ 1. RestConsumer         │         │ 1. ScheduledConsumer    │         │ 1. MessagingConsumer    │
-│ 2. JSON Converter       │         │ 2. Task Retrieval Broker│         │ 2. Task Event Translator│
-│ 3. Validation Translator│         │ 3. Task Prep Splitter   │         │ 3. Business Proc Broker │
-│ 4. Job Reg Broker       │         │ 4. Messaging Producer   │         │ 4. Result Persist Broker│
-│ 5. Response Producer    │         │                         │         │ 5. Result Producer      │
-└────────────┬────────────┘         └────────────┬────────────┘         └────────────▲────────────┘
-             │                                   │                                   │
-             │                                   ▼                                   │
-             │                          MESSAGING SPI BOUNDARY ──────────────────────┘
-             │                          (In-Memory Active / Bounded Queue)
-             ▼
-      PERSISTENCE SPI
-  (In-Memory Active Storage)
+                CONSUMER  (Exactly ONE per flow)
+                   │
+                   ▼
+         CONVERTER / TRANSLATOR
+                   │
+                   ▼
+     ROUTER / SPLITTER / FILTER / BROKER / PROCESSOR
+                   │
+                   ▼
+                PRODUCER  (Terminal Endpoint or Route Destinations)
 ```
 
 ---
 
-## 3. Documentation Suite
+## 3. Core Flow Demonstrator (`efe-core-flow`)
 
-- [Architecture Overview](docs/architecture.md)
-- [Ikasan Module Specification](docs/ikasan-module.md)
-- [Flow Design Specification](docs/flow-design.md)
-- [Messaging SPI & Adapter Roadmap](docs/messaging-spi.md)
-- [Persistence SPI & Storage Model](docs/persistence-spi.md)
-- [Configuration Architecture](docs/configuration.md)
-- [Master Bead Roadmap (EFE-001 to EFE-018)](docs/future-roadmap.md)
+```text
+                         EFE PLATFORM
+                              │
+                        efe-core-flow
+                              │
+                         EFE-CORE-IN (Consumer)
+                              │
+                              ▼
+                     EFE-CORE-CONVERTER (JSON -> EfeCoreEvent)
+                              │
+                              ▼
+                     EFE-CORE-VALIDATOR (Translator Validation)
+                              │
+                              ▼
+                     EFE-CORE-PROCESSOR (Match vs Break Evaluation)
+                              │
+                              ▼
+                       EFE-CORE-ROUTER (Dynamic Router)
+                          /        \
+                         /          \
+                      MATCH        BREAK
+                        │             │
+                        ▼             ▼
+                 EFE-MATCH-OUT   EFE-BREAK-OUT (Producers)
+```
 
 ---
 
 ## 4. Quick Start
 
-### Build & Test
+### Build & Run Tests
 ```bash
 mvn clean test
 ```
@@ -92,11 +102,22 @@ mvn clean test
 mvn spring-boot:run
 ```
 
-- **Interactive Ikasan Dashboard**: [http://localhost:8080/ikasan/](http://localhost:8080/ikasan/)
+- **Enterprise Flow Engine Console**: [http://localhost:8080/](http://localhost:8080/)
 - **Module Telemetry API**: `GET http://localhost:8080/api/v1/ikasan/module`
-- **Submit Trade Job**:
+- **Submit Core Event**:
   ```bash
-  curl -X POST http://localhost:8080/api/v1/jobs/reconciliation \
+  curl -X POST http://localhost:8080/api/v1/core/events \
+    -H "Content-Type: application/json" \
+    -d '{
+      "eventId": "E-1001",
+      "type": "TRADE",
+      "expectedQuantity": 100,
+      "actualQuantity": 100
+    }'
+  ```
+- **Submit Reconciliation Job**:
+  ```bash
+  curl -X POST http://localhost:8080/api/v1/jobs \
     -H "Content-Type: application/json" \
     -d '{
       "businessDate": "2026-08-27",
@@ -109,23 +130,23 @@ mvn spring-boot:run
 
 ---
 
-## 5. Master Roadmap
+## 5. Master Roadmap & Bead Status
 
-- **EFE-001** — Platform foundation / Ikasan module *(Completed)*
-- **EFE-002** — Generic Flow definition
-- **EFE-003** — Generic Job & Task execution
-- **EFE-004** — Scheduler
-- **EFE-005** — Messaging SPI + In-Memory
-- **EFE-006** — Worker execution
-- **EFE-007** — Retry / Idempotency / DLQ model
-- **EFE-008** — Persistence SPI
-- **EFE-009** — REST API framework
-- **EFE-010** — Observability / Operations
-- **EFE-011** — Kafka plugin
-- **EFE-012** — RabbitMQ plugin
-- **EFE-013** — AMQ/JMS plugin
-- **EFE-014** — Redis Streams plugin
-- **EFE-015** — Camel integration
-- **EFE-016** — Project template / bootstrap
-- **EFE-017** — Reconciliation example
-- **EFE-018** — Corporate Action example
+| Bead | Title | Category | Status | Summary |
+| :--- | :--- | :--- | :--- | :--- |
+| **EFE-001** | Initial Scaffold | *Runtime* | **COMPLETED** | Spring Boot foundation, domain entities, web console. |
+| **EFE-002** | REST + Cucumber | *Connectors* | **COMPLETED** | Reusable REST `/api/v1/jobs` contract, idempotency, Cucumber specs. |
+| **EFE-003** | Real Ikasan Foundation | *Runtime* | **COMPLETED** | Real Ikasan Module, Flows, Consumers, Processors, Brokers, and Routers. |
+| **EFE-004** | Core Flow Demonstrator | *Flows* | **COMPLETED** | Canonical `efe-core-flow` with MATCH/BREAK routing and REST trigger. |
+| **EFE-005** | Async Execution | *Execution* | **NEXT** | Scheduled Consumer → Splitter → Processor → Producer (Bounded Pool). |
+| **EFE-006** | Reliability | *Operations* | **PLANNED** | Retry policies, Recovery manager, Dead Letter Queue (DLQ), Wiretap. |
+| **EFE-007** | Optional AI Component | *Intelligence* | **PLANNED** | AI Processor → Ollama Local Runtime + PII Sanitizer. |
+| **EFE-008** | JMX / Operations | *Management* | **PLANNED** | JMX `com.efe` management plane for Module, Flow, Scheduler, Executor. |
+| **EFE-009** | GraphQL | *API* | **PLANNED** | GraphQL queries and mutations layer. |
+| **EFE-010** | gRPC | *API* | **PLANNED** | gRPC Protobuf high-performance adapter. |
+| **EFE-011** | Connector Pack | *Connectors* | **PLANNED** | Transport connectors: Kafka, RabbitMQ, AMQ/JMS, Redis Streams. |
+| **EFE-012** | Camel Integration | *Integration* | **PLANNED** | Apache Camel component mediation in Ikasan flows. |
+| **EFE-013** | Corporate Action Module | *Domain* | **PLANNED** | Autonomous `efe-corporate-actions` microservice. |
+| **EFE-014** | Reconciliation Module | *Domain* | **PLANNED** | Autonomous `efe-reconciliation` microservice. |
+| **EFE-015** | Electives Module | *Domain* | **PLANNED** | Autonomous `efe-electives` microservice. |
+| **EFE-016** | Docker / K8s Production Packaging | *Deployment* | **PLANNED** | Multi-module containers, Helm charts, and K8s manifests. |
