@@ -126,7 +126,29 @@ EFE PLATFORM
 
 ---
 
-## 4. Autonomous Domain Flow Examples
+## 4. Verified Platform Flows (EFE-003 to EFE-005)
+
+### 4.1 Core Flow Demonstrator (`efe-core-flow`)
+```
+[EFE-CORE-IN] ──► [EFE-CORE-CONVERTER] ──► [EFE-CORE-VALIDATOR] ──► [EFE-CORE-PROCESSOR] ──► [EFE-CORE-ROUTER]
+                                                                                                  ├── MATCH ──► [EFE-MATCH-OUT]
+                                                                                                  └── BREAK ──► [EFE-BREAK-OUT]
+```
+
+### 4.2 Bounded Asynchronous Execution Flow (`efe-async-flow`)
+```
+[EFE-ASYNC-SCHEDULED-IN] ──► [EFE-ASYNC-TASK-BROKER] ──► [EFE-ASYNC-SPLITTER] ──► [EFE-ASYNC-WORKER-PROCESSOR] ──► [EFE-ASYNC-OUT]
+                                                                                           (EfeExecutorService)
+```
+
+### 4.3 Foundation Flows (`efe-foundation-flow`, `efe-scheduled-foundation-flow`, `efe-router-foundation-flow`)
+* **Foundation Flow**: `EFE-FOUNDATION-IN → EFE-JSON-CONVERTER → EFE-FOUNDATION-PROCESSOR → EFE-FOUNDATION-OUT`
+* **Scheduled Flow**: `EFE-SCHEDULED-IN → EFE-TASK-BROKER → EFE-SCHEDULED-PROCESSOR → EFE-SCHEDULED-OUT`
+* **Router Flow**: `EFE-ROUTER-IN → EFE-ROUTER-PROCESSOR → EFE-ROUTER → Route A (EFE-PRODUCER-A) / Route B (EFE-PRODUCER-B)`
+
+---
+
+## 5. Autonomous Domain Flow Examples
 
 ### 4.1 Corporate Actions Module (`efe-corporate-actions`)
 ```

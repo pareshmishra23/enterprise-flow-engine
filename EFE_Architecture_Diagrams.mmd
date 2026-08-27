@@ -89,6 +89,32 @@ flowchart LR
     end
 
 %% ----------------------------------------------------------------------------
+%% 2.1 Core Flow Demonstrator (efe-core-flow)
+%% ----------------------------------------------------------------------------
+flowchart LR
+    subgraph CORE_FLOW ["Core Flow Demonstrator (efe-core-flow)"]
+        C_IN["EFE-CORE-IN\n(Consumer)"]
+        --> C_CONV["EFE-CORE-CONVERTER\n(JSON -> DTO)"]
+        --> C_VAL["EFE-CORE-VALIDATOR\n(Translator)"]
+        --> C_PROC["EFE-CORE-PROCESSOR\n(Match/Break Eval)"]
+        --> C_ROUT{"EFE-CORE-ROUTER"}
+        C_ROUT -->|MATCH| P_MATCH["EFE-MATCH-OUT\n(Producer A)"]
+        C_ROUT -->|BREAK| P_BREAK["EFE-BREAK-OUT\n(Producer B)"]
+    end
+
+%% ----------------------------------------------------------------------------
+%% 2.2 Bounded Asynchronous Flow (efe-async-flow)
+%% ----------------------------------------------------------------------------
+flowchart LR
+    subgraph ASYNC_FLOW ["Bounded Async Execution Flow (efe-async-flow)"]
+        A_IN["EFE-ASYNC-SCHEDULED-IN\n(Scheduled Consumer)"]
+        --> A_BROK["EFE-ASYNC-TASK-BROKER\n(Batch Retrieval)"]
+        --> A_SPLIT["EFE-ASYNC-SPLITTER\n(Partitioning)"]
+        --> A_WORK["EFE-ASYNC-WORKER-PROCESSOR\n(EfeExecutorService Pool)"]
+        --> A_OUT["EFE-ASYNC-OUT\n(Result Producer)"]
+    end
+
+%% ----------------------------------------------------------------------------
 %% 3. Platform Capability Pack (EFE Core Subsystems)
 %% ----------------------------------------------------------------------------
 graph TB
