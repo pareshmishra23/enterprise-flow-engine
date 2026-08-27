@@ -2,7 +2,7 @@
 ## IKASAN-001 Enterprise ESB Foundation
 
 ### 1. Architectural Mission
-The **Trade Reconciliation Enterprise Service Bus (ESB)** is built on the native **Ikasan Enterprise Integration Platform (EIP)** component model. It establishes an asynchronous, resilient, and decoupled processing engine designed to ingest trade reconciliation requests from external sources (e.g. Custodians, Brokers, Clearing Houses), register them into stateful workflows, dispatch discrete tasks, and process reconciliation algorithms asynchronously.
+The **Trade Reconciliation Enterprise Service Bus (ESB)** is built on the **Ikasan Enterprise Integration Platform (EIP) component model**. EFE is an **implementation of the Ikasan component model** (Module → Flow → single Consumer → Converter/Translator/Processor/Broker/Splitter/Filter/Router → Producer), rather than the official `org.ikasan` runtime — see **ADR-001**. It establishes an asynchronous, resilient, and decoupled processing engine designed to ingest trade reconciliation requests from external sources (e.g. Custodians, Brokers, Clearing Houses), register them into stateful workflows, dispatch discrete tasks, and process reconciliation algorithms asynchronously.
 
 ---
 
@@ -48,7 +48,7 @@ The **Enterprise Flow Engine (EFE)** is partitioned into two distinct domains: t
                             HTTP POST /api/v1/jobs/reconciliation
                                          │
                  ┌───────────────────────┴───────────────────────┐
-                 │       IKASAN ENTERPRISE MODULE: TRADE-RECON-ESB│
+                 │       IKASAN ENTERPRISE MODULE: ENTERPRISE-FLOW-ENGINE│
                  └───────────────────────┬───────────────────────┘
                                          │
        ┌─────────────────────────────────┼─────────────────────────────────┐
@@ -81,16 +81,20 @@ The **Enterprise Flow Engine (EFE)** is partitioned into two distinct domains: t
 - Acts as a thin HTTP entry adapter that immediately delegates incoming payloads into the Ikasan Ingestion Flow.
 - Does **not** perform business calculations or run ad-hoc thread executors.
 
-#### B. Ikasan Flow Orchestration (`com.efe.traderecon.flow`)
+#### B. Ikasan Flow Orchestration (`com.efe.traderecon.flow` / `com.efe.traderecon.ikasan.model`)
 - Enforces the Ikasan component model:
-  - **Module**: The deployable aggregate container (`TRADE-RECON-ESB`).
+  - **Module**: The deployable aggregate container (`enterprise-flow-engine`).
   - **Flow**: An integration pipeline with a single entry Consumer.
-  - **Consumer**: Entry point (REST, Scheduled, Messaging).
+  - **Consumer**: Entry point (REST, Scheduled/Quartz, Messaging).
   - **Converter**: Object type translation without business logic.
   - **Translator**: Object enrichment and field validation.
   - **Broker**: Stateful side effects (Database access, API calls).
   - **Splitter**: Fan-out partitioning of batched payloads into discrete units of work.
-  - **Producer**: Outbound terminal emission.
+  - **Filter**: Predicates on the event; dropped events terminate the route.
+  - **Router**: Selects a named producer route (multi-producer branching).
+  - **Producer**: Outbound terminal emission (default or route-specific).
+  - **Reliability**: Optional flow-level retry/backoff/DLQ wrapper (via `FlowBuilder.reliable(...)`).
+  - **Wiretap**: Optional per-flow audit hook observing every event transiting the pipeline.
 
 #### C. Messaging SPI Boundary (`com.efe.traderecon.messaging.spi`)
 - Abstract interfaces (`MessagingProducer<T>`, `MessagingConsumer<T>`, `MessagingProvider`, `MessagingMessage<T>`).
@@ -159,7 +163,7 @@ The current implementation is a **foundation**, not a production delivery guaran
 
 #### EFE-006 verification
 
-The current branch verifies EFE-006 with focused tests for transient fail-once recovery, permanent failure without retry, exhausted transient failure to DLQ, and audit transition records. The full Maven suite passes with **107 tests, 0 failures, 0 errors, and 0 skipped tests**.
+The current branch verifies EFE-006 with focused tests for transient fail-once recovery, permanent failure without retry, exhausted transient failure to DLQ, and audit transition records. The full Maven suite passes with **113 tests, 0 failures, 0 errors, and 0 skipped tests**.
 
 #### Operational and security implications
 
@@ -167,9 +171,50 @@ DLQ inspection and replay must be exposed only through a private management plan
 
 ---
 
+### 4.1 EFE-010 Ikasan-Aligned Flow Engine Hardening
+
+EFE-010 hardens the EFE flow engine to faithfully implement Ikasan component semantics (per **ADR-001**), keeping the engine generic with no domain coupling.
+
+**Flow-level reliability (retry / backoff / DLQ)**
+
+When a flow is configured with a reliability service, the whole event pipeline is executed through `ReliabilityService`:
+
+```text
+Flow event
+   |
+   v
+onConsumerEvent --> reliability.execute(eventId, flow, doExecute)
+   |                         |
+   |                         +-- SUCCESS --> produced result
+   |                         |
+   |                         +-- retryable failure --> capped backoff --> RETRY
+   |                         |
+   |                         +-- permanent/exhausted --> DLQ --> rethrow
+   |
+   +-- totalEventsProcessed / totalEventsFailed counters
+```
+
+- Enabled per flow via `FlowBuilder.reliable(ReliabilityService, Function<Object,String> eventIdExtractor)`.
+- The business processors stay infrastructure-agnostic; they never run their own retry loops.
+- `reliability-demo-flow` demonstrates transient-fail-then-succeed and permanent-failure-to-DLQ end to end.
+
+**Quartz-backed scheduled consumer**
+
+`ScheduledTaskConsumer` (reconciliation-dispatch-flow) is driven by a first-class Quartz `Scheduler`/`Job`/`Trigger` instead of a raw scheduled executor. Cadence remains configurable via `scheduler.reconciliation-dispatch.interval-ms`.
+
+**Wiretap / audit observability**
+
+- Each flow exposes `addWiretap(Consumer<Object>)`, invoked on intake and after every component, for audit/trace.
+- `FlowWiretapStore` records observed events (bounded), and `ReliabilityAuditTrail` records `SUCCESS`/`RETRY`/`DLQ` transitions.
+- Surfaced via `GET /api/v1/ikasan/observability` (wiretap events + reliability audit trail + DLQ snapshot) and the reliability-demo REST surface.
+
+**Router / Filter semantics** (from earlier beads) remain fundamental: routers select named producer routes, filters drop non-matching events and terminate the route.
+
+---
+
 ### 5. Current implementation status and next boundary
 
-EFE-001 through EFE-006 are complete at the demonstrator/foundation level. EFE-007 is the next planned capability. The next reliability hardening boundary is durable delivery: persistent DLQ, transactional outbox/inbox, idempotent replay, broker acknowledgements, and restart recovery. These concerns must extend the existing reliability contracts rather than introducing a second orchestration or recovery framework.
+EFE-001 through EFE-010 are complete at the demonstrator/foundation level, delivering realistic Ikasan component semantics (module/flows, router branching, filter, Quartz scheduling, flow-level retry/backoff/DLQ, wiretap/AI/JMX/GraphQL). The current module runs **12 flows** (including `reliability-demo-flow`), verified by **113 passing tests**. The next reliability hardening boundary is durable delivery: persistent DLQ, transactional outbox/inbox, idempotent replay, broker acknowledgements, and restart recovery. These concerns must extend the existing reliability contracts rather than introducing a second orchestration or recovery framework; official `org.ikasan` runtime adoption remains an open, deferred ADR path.
 
 
 ---
