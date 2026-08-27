@@ -164,16 +164,16 @@ mvn spring-boot:run
 | **EFE-004** | Core Flow Demonstrator | *Flows* | **COMPLETED** | Canonical `efe-core-flow` with MATCH/BREAK routing and REST trigger. |
 | **EFE-005** | Async Execution | *Execution* | **COMPLETED** | Scheduled Consumer → Task Retrieval → Splitter → Bounded Worker Pool → Producer. |
 | **EFE-006** | Reliability | *Operations* | **COMPLETED — FOUNDATION** | Classified retry/backoff, in-memory DLQ, wiretap/audit records, async worker integration, and executor shutdown; 107/107 tests passing. |
-| **EFE-007** | Optional AI Component | *Intelligence* | **NEXT** | AI Processor → Ollama Local Runtime + PII Sanitizer. |
-| **EFE-008** | JMX / Operations | *Management* | **PLANNED** | JMX `com.efe` management plane for Module, Flow, Scheduler, Executor. |
-| **EFE-009** | GraphQL | *API* | **PLANNED** | GraphQL queries and mutations layer. |
-| **EFE-010** | gRPC | *API* | **PLANNED** | gRPC Protobuf high-performance adapter. |
-| **EFE-011** | Connector Pack | *Connectors* | **PLANNED** | Transport connectors: Kafka, RabbitMQ, AMQ/JMS, Redis Streams. |
+| **EFE-007** | Optional AI Component | *Intelligence* | **COMPLETED — FOUNDATION** | Local AI provider boundary, sanitizer, structured parsing, timeout/error handling, and fallback rules. |
+| **EFE-008** | JMX / Operations | *Management* | **COMPLETED — FOUNDATION** | JMX `com.efe` management plane for Module, Flow, Scheduler, Executor, and Messaging. |
+| **EFE-009** | GraphQL | *API* | **COMPLETED — FOUNDATION** | Local GraphQL query/mutation adapter over common services. |
+| **EFE-010** | gRPC | *API* | **COMPLETED — FOUNDATION** | Local gRPC adapter boundary and acceptance coverage. |
+| **EFE-011** | Connector Pack | *Connectors* | **COMPLETED — FOUNDATION** | Provider SPI and local adapter boundaries for Kafka, RabbitMQ, AMQ/JMS, Redis Streams, and in-memory transport. |
 | **EFE-012** | Camel Integration | *Integration* | **PLANNED** | Apache Camel component mediation in Ikasan flows. |
 | **EFE-013** | Corporate Action Module | *Domain* | **PLANNED** | Autonomous `efe-corporate-actions` microservice. |
 | **EFE-014** | Reconciliation Module | *Domain* | **PLANNED** | Autonomous `efe-reconciliation` microservice. |
 | **EFE-015** | Electives Module | *Domain* | **PLANNED** | Autonomous `efe-electives` microservice. |
-| **EFE-016** | Docker / K8s Production Packaging | *Deployment* | **PLANNED** | Multi-module containers, Helm charts, and K8s manifests. |
+| **EFE-016** | Docker / K8s Production Packaging | *Deployment* | **COMPLETED — FOUNDATION** | Dockerfile and Kubernetes deployment/service/config templates; Helm, secrets, scans, and live-cluster validation remain. |
 
 
 ## 7. EFE-006 Reliability Foundation
@@ -212,3 +212,37 @@ mvn -B clean test
 ```
 
 This is a foundation rather than a production delivery guarantee. Durable broker acknowledgement, persistent DLQ storage, transactional outbox/inbox, restart recovery, authenticated replay, and persistent audit storage remain future hardening work under the reliability and connector roadmap. DLQ operations must eventually be isolated behind a private OAuth2/OIDC-protected management plane.
+
+
+## 8. Option-A Security and Foundation Scope
+
+The platform includes an optional OAuth2/OIDC resource-server security foundation. Enable it per environment with:
+
+```yaml
+efe:
+  security:
+    enabled: true
+    issuer-uri: https://identity.example.com/realms/efe
+    audience: efe-api
+```
+
+With security enabled, REST, GraphQL, and gRPC routes require authenticated OAuth2 access tokens. Health endpoints remain open for liveness/readiness probes. Actuator, JMX, and future DLQ replay operations are treated as privileged management-plane operations and require the `efe.admin` scope. OIDC is the intended human/operator identity layer; JWT is only the token representation and must not be treated as authorization by itself.
+
+Option A means that the remaining EFE beads are implemented as **local, testable platform foundations** where possible. The repository provides contracts and adapters for APIs, persistence, messaging, intelligence, management, and deployment, while vendor-specific broker/database/identity-provider behavior remains behind explicit interfaces and requires separate integration environments before production approval.
+
+The architecture and flow model now reflects the following runtime boundary:
+
+```text
+API adapter / scheduled consumer / messaging consumer
+                         |
+                         v
+                   Ikasan flow
+                         |
+             ReliabilityService boundary
+                 |       |       |
+             success   retry     DLQ + audit
+                         |
+                    domain processor
+```
+
+This prevents retry loops, transport-specific logic, security enforcement, or audit concerns from being duplicated inside business processors.
