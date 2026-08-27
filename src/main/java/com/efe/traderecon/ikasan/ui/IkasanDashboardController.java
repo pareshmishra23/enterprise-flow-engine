@@ -4,6 +4,8 @@ import com.efe.traderecon.ikasan.engine.IkasanEngine;
 import com.efe.traderecon.ikasan.model.FlowElement;
 import com.efe.traderecon.ikasan.model.IkasanFlow;
 import com.efe.traderecon.ikasan.model.IkasanModule;
+import com.efe.traderecon.reliability.DeadLetterQueue;
+import com.efe.traderecon.reliability.ReliabilityAuditTrail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +16,18 @@ import java.util.*;
 public class IkasanDashboardController {
 
     private final IkasanEngine ikasanEngine;
+    private final FlowWiretapStore wiretapStore;
+    private final ReliabilityAuditTrail auditTrail;
+    private final DeadLetterQueue deadLetterQueue;
 
-    public IkasanDashboardController(IkasanEngine ikasanEngine) {
+    public IkasanDashboardController(IkasanEngine ikasanEngine,
+                                     FlowWiretapStore wiretapStore,
+                                     ReliabilityAuditTrail auditTrail,
+                                     DeadLetterQueue deadLetterQueue) {
         this.ikasanEngine = ikasanEngine;
+        this.wiretapStore = wiretapStore;
+        this.auditTrail = auditTrail;
+        this.deadLetterQueue = deadLetterQueue;
     }
 
     @GetMapping("/module")
@@ -65,6 +76,29 @@ public class IkasanDashboardController {
             flowList.add(flowMap);
         }
         resp.put("flows", flowList);
+        return ResponseEntity.ok(resp);
+    }
+
+    /**
+     * Observability endpoint (EFE-010 wiretap/audit): surfaces wiretapped events
+     * observed flowing through Ikasan flows, the reliability audit trail, and the
+     * dead letter queue contents.
+     */
+    @GetMapping("/observability")
+    public ResponseEntity<Map<String, Object>> getObservability() {
+        Map<String, Object> resp = new LinkedHashMap<>();
+
+        resp.put("wiretapEvents", wiretapStore.snapshot());
+        resp.put("wiretapCount", wiretapStore.size());
+
+        Map<String, Object> reliability = new LinkedHashMap<>();
+        reliability.put("auditTrail", auditTrail.snapshot());
+        reliability.put("auditCount", auditTrail.snapshot().size());
+        reliability.put("dlqSize", deadLetterQueue.size());
+        reliability.put("dlqCapacity", deadLetterQueue.capacity());
+        reliability.put("dlqRecords", deadLetterQueue.snapshot());
+        resp.put("reliability", reliability);
+
         return ResponseEntity.ok(resp);
     }
 

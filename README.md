@@ -1,5 +1,5 @@
 # Enterprise Flow Engine (EFE)
-> Enterprise Integration & Asynchronous Processing Platform (Ikasan 5.0.x Architecture)
+> Enterprise Integration & Asynchronous Processing Platform (EFE implements the Ikasan 5.0.x component model)
 
 [![Java 21](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3%20%2F%204.1-green.svg)](https://spring.io/projects/spring-boot)
@@ -9,7 +9,7 @@
 
 ## 1. Overview
 
-**EFE (Enterprise Flow Engine)** is a high-throughput, decoupled enterprise integration platform designed for complex asynchronous workflows such as **Trade Reconciliation** and **Corporate Actions**. Built upon the **Ikasan Enterprise Integration Platform (EIP)** component model, EFE establishes clean separation between platform runtime, transport connectors, observability, and domain processors.
+**EFE (Enterprise Flow Engine)** is a high-throughput, decoupled enterprise integration platform designed for complex asynchronous workflows such as **Trade Reconciliation** and **Corporate Actions**. EFE is an implementation of the **Ikasan Enterprise Integration Platform (EIP) component model** (Module/Flow/Consumer/Processor/Router/etc.), establishing clean separation between platform runtime, transport connectors, observability, and domain processors. It currently uses its own EFE runtime that conforms to the Ikasan component semantics; adoption of the official `org.ikasan` runtime is tracked as a future ADR/upgrade path (see **ADR-001**).
 
 ```text
                          EFE PLATFORM

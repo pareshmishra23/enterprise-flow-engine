@@ -27,7 +27,8 @@ public class ModuleConfiguration {
             @Qualifier("reconciliationProcessingFlow") IkasanFlow processingFlow,
             @Qualifier("intelligenceAuditFlow") IkasanFlow intelligenceAuditFlow,
             @Qualifier("asyncDemoFlow") IkasanFlow asyncDemoFlow,
-            @Qualifier("dbDemoFlow") IkasanFlow dbDemoFlow) {
+            @Qualifier("dbDemoFlow") IkasanFlow dbDemoFlow,
+            @Qualifier("reliabilityDemoFlow") IkasanFlow reliabilityDemoFlow) {
 
         ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
                 .withDescription(description);
@@ -43,6 +44,7 @@ public class ModuleConfiguration {
         moduleBuilder.addFlow(intelligenceAuditFlow);
         moduleBuilder.addFlow(asyncDemoFlow);
         moduleBuilder.addFlow(dbDemoFlow);
+        moduleBuilder.addFlow(reliabilityDemoFlow);
 
         return moduleBuilder.build();
     }
