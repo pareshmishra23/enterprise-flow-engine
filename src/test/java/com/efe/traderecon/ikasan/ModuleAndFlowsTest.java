@@ -20,13 +20,13 @@ public class ModuleAndFlowsTest {
     private IkasanEngine ikasanEngine;
 
     @Test
-    @DisplayName("Should initialize Ikasan Module with 3 running flows and configured components")
+    @DisplayName("Should initialize Ikasan Module with running flows and configured components")
     void shouldInitializeModuleAndFlows() {
         IkasanModule module = ikasanEngine.getModule();
         assertThat(module).isNotNull();
         assertThat(module.getName()).isEqualTo("enterprise-flow-engine");
         assertThat(module.isRunning()).isTrue();
-        assertThat(module.getFlows()).hasSize(11);
+        assertThat(module.getFlows()).hasSize(12);
 
         // 1. Ingestion Flow
         Optional<IkasanFlow> ingestionFlow = module.getFlow("trade-ingestion-flow");
@@ -54,6 +54,14 @@ public class ModuleAndFlowsTest {
         assertThat(processingFlow.get().getConsumer().getName()).isEqualTo("messaging-processing-consumer");
         assertThat(processingFlow.get().getElements()).hasSize(3); // Converter, Broker, Broker
         assertThat(processingFlow.get().getProducer()).isNotNull();
+
+        // 4. Reliability Demo Flow
+        Optional<IkasanFlow> reliabilityFlow = module.getFlow("reliability-demo-flow");
+        assertThat(reliabilityFlow).isPresent();
+        assertThat(reliabilityFlow.get().getState()).isEqualTo(FlowState.RUNNING);
+        assertThat(reliabilityFlow.get().getConsumer()).isNotNull();
+        assertThat(reliabilityFlow.get().getConsumer().getName()).isEqualTo("RELIABILITY-IN");
+        assertThat(reliabilityFlow.get().getProducer()).isNotNull();
     }
 
     @Test

@@ -1,5 +1,6 @@
 package com.efe.traderecon.ikasan.model;
 
+import com.efe.traderecon.reliability.ReliabilityService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Ikasan Flow Execution Model.
@@ -27,16 +30,26 @@ public class IkasanFlow {
     private final IkasanProducer<?> defaultProducer;
     private final List<Consumer<Object>> wiretaps = new CopyOnWriteArrayList<>();
 
+    private final ReliabilityService reliability;
+    private final Function<Object, String> eventIdExtractor;
+
     private volatile FlowState state = FlowState.STOPPED;
     private long totalEventsProcessed = 0;
     private long totalEventsFailed = 0;
 
     public IkasanFlow(String name, String moduleName, IkasanConsumer<?> consumer, List<FlowElement> elements, IkasanProducer<?> defaultProducer) {
+        this(name, moduleName, consumer, elements, defaultProducer, null, null);
+    }
+
+    public IkasanFlow(String name, String moduleName, IkasanConsumer<?> consumer, List<FlowElement> elements,
+                      IkasanProducer<?> defaultProducer, ReliabilityService reliability, Function<Object, String> eventIdExtractor) {
         this.name = name;
         this.moduleName = moduleName;
         this.consumer = consumer;
         this.elements = elements != null ? new ArrayList<>(elements) : new ArrayList<>();
         this.defaultProducer = defaultProducer;
+        this.reliability = reliability;
+        this.eventIdExtractor = eventIdExtractor;
         wirePipeline();
     }
 
@@ -112,6 +125,25 @@ public class IkasanFlow {
             return null;
         }
 
+        // When the flow is configured with reliability handling, route the whole
+        // event pipeline through retry/backoff and DLQ on failure.
+        if (reliability != null) {
+            String eventId = (eventIdExtractor != null) ? eventIdExtractor.apply(initialEvent) : String.valueOf(initialEvent);
+            try {
+                return reliability.execute(eventId, moduleName + "::" + name, () -> doExecute(initialEvent));
+            } catch (Exception ex) {
+                synchronized (this) {
+                    totalEventsFailed++;
+                }
+                log.error("Ikasan Flow [{}::{}] exhausted recovery and failed event [{}]: {}", moduleName, name, eventId, ex.getMessage());
+                throw new RuntimeException("Flow execution failed after recovery attempts: " + ex.getMessage(), ex);
+            }
+        }
+        return doExecute(initialEvent);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private Object doExecute(Object initialEvent) {
         long start = System.currentTimeMillis();
         Object currentPayload = initialEvent;
 

@@ -1,10 +1,12 @@
 package com.efe.traderecon.ikasan.builder;
 
 import com.efe.traderecon.ikasan.model.*;
+import com.efe.traderecon.reliability.ReliabilityService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Ikasan Flow Builder DSL.
@@ -16,6 +18,8 @@ public class FlowBuilder {
     private IkasanConsumer<?> consumer;
     private final List<FlowElement> elements = new ArrayList<>();
     private IkasanProducer<?> defaultProducer;
+    private ReliabilityService reliability;
+    private Function<Object, String> eventIdExtractor;
 
     public FlowBuilder(String name, String moduleName) {
         this.name = name;
@@ -72,6 +76,23 @@ public class FlowBuilder {
         return this;
     }
 
+    /**
+     * Enable flow-level reliability handling (retry with backoff, then DLQ) for
+     * this flow. When enabled, the whole event pipeline is executed through the
+     * provided {@link ReliabilityService}; on failure it retries per configuration
+     * and, once exhausted or for permanently classified failures, routes the event
+     * to the dead letter queue.
+     *
+     * @param service            the reliability service to use
+     * @param eventIdExtractor   extracts a stable event id from an inbound event for
+     *                           audit/DLQ correlation; may be null to use toString()
+     */
+    public FlowBuilder reliable(ReliabilityService service, Function<Object, String> eventIdExtractor) {
+        this.reliability = service;
+        this.eventIdExtractor = eventIdExtractor;
+        return this;
+    }
+
     public static class RouteConfiguration {
         private final FlowElement routerElement;
 
@@ -92,6 +113,6 @@ public class FlowBuilder {
         if (consumer == null) {
             throw new IllegalStateException("Flow [" + name + "] must have exactly one Consumer configured");
         }
-        return new IkasanFlow(name, moduleName, consumer, elements, defaultProducer);
+        return new IkasanFlow(name, moduleName, consumer, elements, defaultProducer, reliability, eventIdExtractor);
     }
 }
