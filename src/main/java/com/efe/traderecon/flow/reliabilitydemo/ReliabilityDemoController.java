@@ -39,6 +39,18 @@ public class ReliabilityDemoController {
         this.auditTrail = auditTrail;
     }
 
+    @GetMapping({"/", ""})
+    public ResponseEntity<Map<String, Object>> root() {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("flow", "reliability-demo-flow");
+        body.put("availableEndpoints", List.of(
+                "POST /api/v1/reliability/messages",
+                "GET  /api/v1/reliability/messages",
+                "GET  /api/v1/reliability/dlq",
+                "GET  /api/v1/reliability/audit"));
+        return ResponseEntity.ok(body);
+    }
+
     @PostMapping("/messages")
     public ResponseEntity<Map<String, Object>> submitMessage(@RequestBody(required = false) Map<String, Object> payload) {
         String messageId = (payload != null && payload.get("messageId") != null)
