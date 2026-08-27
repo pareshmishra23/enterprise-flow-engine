@@ -44,6 +44,10 @@ management:
         include: "*"
 
 efe:
+  security:
+    enabled: false
+    issuer-uri: ""
+    audience: efe-api
   execution:
     workers:
       core-size: 4

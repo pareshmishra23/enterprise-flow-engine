@@ -170,3 +170,26 @@ DLQ inspection and replay must be exposed only through a private management plan
 ### 5. Current implementation status and next boundary
 
 EFE-001 through EFE-006 are complete at the demonstrator/foundation level. EFE-007 is the next planned capability. The next reliability hardening boundary is durable delivery: persistent DLQ, transactional outbox/inbox, idempotent replay, broker acknowledgements, and restart recovery. These concerns must extend the existing reliability contracts rather than introducing a second orchestration or recovery framework.
+
+
+---
+
+### 6. Option-A Platform Security Foundation
+
+The platform now includes an optional Spring Security OAuth2 resource-server foundation. Human/operator authentication is intended to use OIDC, while APIs use OAuth2 access tokens. JWT is treated only as the access-token format; it is not a substitute for issuer, audience, expiry, signature, scope, and tenant-policy validation.
+
+When `efe.security.enabled=true`, the resource-server boundary protects REST, GraphQL, and gRPC endpoints. Health endpoints remain available for probes. Actuator, JMX, and future DLQ replay endpoints belong to a privileged management plane and require the `efe.admin` scope. The default local profile remains disabled so existing local demonstrator tests and development flows are backward compatible.
+
+```yaml
+efe:
+  security:
+    enabled: false
+    issuer-uri: "https://identity.example.com/realms/efe"
+    audience: efe-api
+```
+
+The next security hardening step is a custom audience validator, tenant authorization policy, mTLS/workload identity for service-to-service calls, and authenticated DLQ replay. External identity-provider integration is intentionally configuration-driven and is not claimed as end-to-end tested in the local foundation.
+
+### 7. Consolidated Option-A Scope
+
+Option A treats remaining beads as local/testable foundations rather than production-complete external integrations. Existing API adapters, provider SPI boundaries, persistence implementations, messaging adapters, JMX surfaces, deployment templates, and intelligence components remain available behind explicit contracts. Future provider-specific work must add contract tests and integration environments rather than embedding vendor logic in domain processors.
