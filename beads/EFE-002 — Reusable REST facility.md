@@ -1,4 +1,4 @@
-# EFE-002 — Reusable REST Facility with Cucumber Acceptance Tests
+# EFE-002 — Reusable REST Facility
 
 ## 1. Objective
 Build a generic, job-type independent REST facility under `/api/v1` that can be reused across any future EFE project without reconciliation-specific business logic.
