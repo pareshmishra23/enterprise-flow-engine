@@ -1,10 +1,23 @@
-%% ============================================================================
-%% Enterprise Flow Engine (EFE) — Complete Architecture & Topology Diagrams
-%% ============================================================================
+%% ----------------------------------------------------------------------------
+%% 0. Core EFE & Ikasan Component Taxonomy
+%% ----------------------------------------------------------------------------
+graph TD
+    EFE["EFE Platform"] --> IKASAN_CORE["Real Ikasan 5.x Engine"]
+    IKASAN_CORE --> MOD_FLOW["Module / Flow Orchestrator"]
+    MOD_FLOW --> COMP_SPLIT{"Component Classification"}
+    
+    COMP_SPLIT --> STD_COMP["Standard Ikasan Components"]
+    COMP_SPLIT --> CUST_COMP["Custom EFE Components"]
+    
+    STD_COMP --> PIPELINE["Unified Flow Pipeline"]
+    CUST_COMP --> PIPELINE
+    
+    subgraph PIPELINE ["Unified 3-Tier Pipeline"]
+        INPUT_TIER["1. INPUT (Consumers)\nREST / SFTP / JMS / Kafka / Quartz"]
+        --> PROCESS_TIER["2. PROCESS (Converters/Translators/Brokers/Processors)\nBusiness Rules / Domain Logic / AI Audit / ML Inference"]
+        --> OUTPUT_TIER["3. OUTPUT (Producers)\nKafka / JMS / RabbitMQ / REST / File / DB"]
+    end
 
-%% ----------------------------------------------------------------------------
-%% 1. Target Multi-Module Ecosystem & Kubernetes Autonomous Deployment
-%% ----------------------------------------------------------------------------
 graph TD
     subgraph EFE_PLATFORM ["EFE Platform & Foundation (Reusable SDK)"]
         CORE["efe-core\n(Domain SPIs, Contracts)"]
