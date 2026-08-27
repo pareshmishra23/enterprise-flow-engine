@@ -26,8 +26,10 @@
 - **Status**: COMPLETED
 - **Description**: Bounded asynchronous execution flow (`efe-async-flow`: Scheduled Consumer → Task Retrieval Broker → Splitter → Bounded Worker Processor → Producer) with `EfeExecutorService` metrics and Cucumber acceptance tests (104/104 tests passing).
 
-### Bead EFE-006: Reliability (NEXT)
-- **Objective**: Resilience mechanisms: Configurable Retry policies, Error Recovery Manager, Dead Letter Queue (DLQ), and Wiretap audit logging.
+### Bead EFE-006: Reliability
+- **Status**: COMPLETED — FOUNDATION
+- **Description**: Configurable classified retry/backoff, bounded in-memory DLQ, wiretap/audit records, async worker retry integration, and executor lifecycle shutdown. Verified with 107/107 tests passing. See `beads/EFE-006 — Reliability Recovery DLQ.md`.
+- **Known limitation**: durable broker recovery, outbox/inbox, replay authorization, and production DLQ persistence remain future hardening work.
 
 ### Bead EFE-007: Optional AI Component
 - **Objective**: AI Processor integration with local Ollama runtime, PII sanitizer, and heuristic fallback.

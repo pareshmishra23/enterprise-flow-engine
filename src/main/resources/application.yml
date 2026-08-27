@@ -52,6 +52,12 @@ efe:
   scheduler:
     poll:
       interval-ms: 5000
+  reliability:
+    max-retries: 3
+    initial-delay-ms: 100
+    backoff-multiplier: 2.0
+    max-delay-ms: 10000
+    dlq-capacity: 1000
   intelligence:
     enabled: false          # Set to true when Ollama is running locally
     provider: local

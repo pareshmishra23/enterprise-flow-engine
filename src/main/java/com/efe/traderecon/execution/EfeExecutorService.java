@@ -1,5 +1,6 @@
 package com.efe.traderecon.execution;
 
+import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -77,6 +78,7 @@ public class EfeExecutorService {
     public long getTaskCount() { return executor.getTaskCount(); }
     public long getRejectedTasks() { return rejectedTaskCount.get(); }
 
+    @PreDestroy
     public void shutdown() {
         executor.shutdown();
     }
