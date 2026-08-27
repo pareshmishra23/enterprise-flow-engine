@@ -1,3 +1,7 @@
+# NOTE (EFE-011): This is an EXAMPLE / REFERENCE deployment for the reconciliation-example
+# application only. It proves an EFE Platform consumer can be containerized and deployed
+# independently. It is NOT a production CA / Reconciliation / Electives deployment — those are
+# separate future autonomous applications and their production hardening remains out of scope.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,6 +9,8 @@ metadata:
   namespace: default
   labels:
     app: efe-reconciliation
+    efe.example: "true"
+    efe.type: reference
 spec:
   replicas: 1
   selector:

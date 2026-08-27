@@ -142,3 +142,80 @@ Future autonomous applications — **Corporate Actions (`efe-corporate-actions`)
 `efe-platform`, define their own Module/flows/domain/APIs, run and containerize independently.
 They follow the `docs/module-template.md` pattern demonstrated by `examples/reconciliation-example`.
 No production CA / Elective / Settlement code is introduced by EFE-011.
+
+## 7. Final Validation / Merge Gates (verified)
+
+The following were verified explicitly against PR #12 before merge.
+
+### 7.1 efe-platform contains zero reconciliation / business leakage
+
+- Grep of `efe-platform/src/main/java`: **no imports** of any reconciliation business package
+  (`domain`, `processor`, `flow/ingestion|dispatch|processing|dbdemo`, `api/graphql|grpc|idempotency`,
+  `persistence`, `configuration/Messaging|Persistence`).
+- No reconciliation business **types** referenced (`Trade`, `ReconciliationJob`, `ReconciliationResult`,
+  `Custodian`, `JobRepository`, `TradeReconciliationProcessor`, `ScheduledTaskConsumer`, etc.).
+- The only textual hit is a **cosmetic prompt string** ("enterprise trade audit AI assistant") inside the
+  optional local `PromptBuilder`. It is not a Java type, compile dependency, or SPI contract; the AI SPI
+  (`IntelligenceProvider` / `IntelligenceRequest` / `IntelligenceResult`) is generic. There is no
+  `TradeReconAIService`. This cosmetic wording is tracked for a future bead (move trade-specific prompt
+  text to the business layer), out of scope for EFE-011.
+- `mvn dependency:tree` – efe-platform has **zero** `com.efe` dependencies.
+
+### 7.2 efe-platform is a library, not a server
+
+- `<packaging>jar</packaging>`; **no** `spring-boot-maven-plugin` (present only on the two runnable
+  apps).
+- Built `efe-platform-1.0.0-SNAPSHOT.jar` manifest has **no** `Main-Class` / `Start-Class` → plain
+  reusable library jar, does not start a server. Relationship is
+  `efe-platform (library) → application`, not `platform server`.
+
+### 7.3 Independent start — reconciliation-example (no root app)
+
+```bash
+mvn -pl examples/reconciliation-example clean package -DskipTests   # builds jar standalone
+java -jar .../efe-reconciliation-1.0.0-SNAPSHOT.jar                  # starts independently
+```
+Verified with no other application running:
+- `/health` → 200; `/ready` → module `trade-recon-esb`, 3 flows, READY.
+- `POST /api/v1/jobs/reconciliation` → `201`, then job → **COMPLETED** (1 matched, 0 failed);
+  flow counters confirm ingestion=1, dispatch=5, processing=1 (async round trip executed).
+
+### 7.4 Independent start — platform-demo (no reconciliation)
+
+```bash
+mvn -pl examples/platform-demo clean package -DskipTests
+java -jar .../efe-platform-demo-1.0.0-SNAPSHOT.jar   # port 8090
+```
+Verified with no other application running:
+- `/health` → 200; `/ready` → module `enterprise-flow-engine`, **8 flows**, READY.
+- 8 pure-platform flows registered: `efe-core-flow`, `efe-async-flow`, `efe-foundation-flow`,
+  `efe-scheduled-foundation-flow`, `efe-router-foundation-flow`, `intelligence-audit-flow`,
+  `async-demo-flow`, `reliability-demo-flow`.
+- `POST /api/v1/core/events` → **202 ACCEPTED** into `efe-core-flow`.
+
+Together 7.3 + 7.4 prove the platform is genuinely reusable and that reconciliation is a separate
+autonomous consumer (the architectural-separation smoke test).
+
+### 7.5 Dependency direction (no cycles / no leakage)
+
+| Module | `com.efe` dependencies |
+| :--- | :--- |
+| efe-platform | **(none)** — root of the graph, pure library |
+| examples/platform-demo | `efe-platform` only |
+| examples/reconciliation-example | `efe-platform` only |
+
+Dependency example → platform, never reversed. Enforced at build by the Maven Enforcer
+`bannedDependencies` rule in `efe-platform/pom.xml`.
+
+### 7.6 No duplicate beans / config / identity
+
+- Each runnable app has exactly one `application.yml` + one `static/` console; the platform jar has
+  neither. The earlier `BeanDefinitionOverrideException` (config-class name == factory-method bean name)
+  was fixed by renaming the factory method.
+- **Application identity** is distinct from the internal Ikasan **Module** id:
+  - `reconciliation-example`: application `reconciliation-example`, Module `trade-recon-esb`.
+  - `platform-demo`: application `efe-platform-demo`, Module `enterprise-flow-engine`.
+- **Security** is configurable and off by default (`efe.security.enabled: false`) in both apps — no
+  imposed authentication / Basic-auth lockout on reference apps.
+- Deployment manifests are explicitly marked **example / reference** (`efe.example: "true"`,
+  `efe.type: reference`) and are not presented as production CA / Elective / Reconciliation deployments.
