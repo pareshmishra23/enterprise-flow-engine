@@ -17,6 +17,7 @@ public class ModuleConfiguration {
             BuilderFactory builderFactory,
             @Value("${esb.module-name:trade-recon-esb}") String moduleName,
             @Value("${esb.description:Trade Reconciliation Enterprise Service Bus}") String description,
+            @Qualifier("efeCoreFlow") IkasanFlow coreFlow,
             @Qualifier("efeFoundationFlow") IkasanFlow foundationFlow,
             @Qualifier("efeScheduledFoundationFlow") IkasanFlow scheduledFoundationFlow,
             @Qualifier("efeRouterFoundationFlow") IkasanFlow routerFoundationFlow,
@@ -30,6 +31,7 @@ public class ModuleConfiguration {
         ModuleBuilder moduleBuilder = builderFactory.getModuleBuilder(moduleName)
                 .withDescription(description);
 
+        moduleBuilder.addFlow(coreFlow);
         moduleBuilder.addFlow(foundationFlow);
         moduleBuilder.addFlow(scheduledFoundationFlow);
         moduleBuilder.addFlow(routerFoundationFlow);

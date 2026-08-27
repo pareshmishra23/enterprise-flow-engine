@@ -39,13 +39,20 @@ public class IkasanDashboardController {
 
             List<Map<String, Object>> elements = new ArrayList<>();
             for (FlowElement el : flow.getElements()) {
-                elements.add(Map.of(
-                        "name", el.getName(),
-                        "type", el.getType().name(),
-                        "invocationCount", el.getInvocationCount(),
-                        "errorCount", el.getErrorCount(),
-                        "lastExecutionTimeMs", el.getLastExecutionTimeMs()
-                ));
+                Map<String, Object> elMap = new LinkedHashMap<>();
+                elMap.put("name", el.getName());
+                elMap.put("type", el.getType().name());
+                elMap.put("invocationCount", el.getInvocationCount());
+                elMap.put("errorCount", el.getErrorCount());
+                elMap.put("lastExecutionTimeMs", el.getLastExecutionTimeMs());
+
+                if (!el.getRoutes().isEmpty()) {
+                    Map<String, String> routeMap = new LinkedHashMap<>();
+                    el.getRoutes().forEach((rName, prod) -> routeMap.put(rName, prod.getName()));
+                    elMap.put("routes", routeMap);
+                }
+
+                elements.add(elMap);
             }
             flowMap.put("components", elements);
 

@@ -377,18 +377,34 @@
                     <div class="arrow">→</div>
                 `;
 
-                // Intermediates
+                // Intermediates & Router Branches
+                let hasTerminalProducer = flow.producer != null;
                 (flow.components || []).forEach(comp => {
                     pipelineHtml += `
                         <div class="node node-${comp.type}">
                             <div class="node-type">${comp.type}</div>
                             <div class="node-name">${comp.name}</div>
                         </div>
-                        <div class="arrow">→</div>
                     `;
+
+                    if (comp.routes && Object.keys(comp.routes).length > 0) {
+                        hasTerminalProducer = true;
+                        pipelineHtml += `<div class="arrow">→</div><div style="display:flex; flex-direction:column; gap:0.5rem;">`;
+                        for (const [rName, rProd] of Object.entries(comp.routes)) {
+                            pipelineHtml += `
+                                <div class="node node-PRODUCER" style="border-left: 3px solid var(--accent-cyan); font-size:0.75rem; padding:0.4rem 0.8rem;">
+                                    <div class="node-type" style="color:var(--accent-cyan); font-weight:700;">ROUTE: ${rName}</div>
+                                    <div class="node-name">${rProd}</div>
+                                </div>
+                            `;
+                        }
+                        pipelineHtml += `</div>`;
+                    } else {
+                        pipelineHtml += `<div class="arrow">→</div>`;
+                    }
                 });
 
-                // Producer
+                // Default Producer
                 if (flow.producer) {
                     pipelineHtml += `
                         <div class="node node-PRODUCER">
@@ -396,6 +412,9 @@
                             <div class="node-name">${flow.producer.name}</div>
                         </div>
                     `;
+                } else if (!hasTerminalProducer) {
+                    // Remove trailing arrow if no producer
+                    pipelineHtml = pipelineHtml.replace(/<div class="arrow">→<\/div>$/, '');
                 }
 
                 card.innerHTML = `
