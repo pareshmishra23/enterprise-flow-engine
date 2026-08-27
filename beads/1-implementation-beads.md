@@ -19,9 +19,10 @@
 - **Description**: Real Ikasan component contracts (`IkasanConsumer`, `IkasanConverter`, `IkasanTranslator`, `IkasanProcessor`, `IkasanBroker`, `IkasanSplitter`, `IkasanFilter`, `IkasanRouter`, `IkasanProducer`), `ModuleBuilder`, `FlowBuilder`, and foundation flows (`efe-foundation-flow`, `efe-scheduled-foundation-flow`, `efe-router-foundation-flow`) verified with 95/95 passing tests.
 
 ### Bead EFE-004: Core Flow Demonstrator
-- **Objective**: Implement the primary canonical Ikasan flow pattern: `REST Consumer → Converter → Processor → Router → 2 Producers (PASS / REVIEW)`.
+- **Status**: COMPLETED
+- **Description**: Core demonstrator flow (`efe-core-flow`: Consumer → Converter → Validator → Processor → Router → MATCH/BREAK Producers) with `POST /api/v1/core/events` REST trigger, Cucumber acceptance tests (`core_flow.feature`), and unit tests (102/102 tests passing).
 
-### Bead EFE-005: Async Execution
+### Bead EFE-005: Async Execution (NEXT)
 - **Objective**: Scheduled Quartz Consumer → Splitter → Async Worker Processor → Producer with bounded concurrency.
 
 ### Bead EFE-006: Reliability
