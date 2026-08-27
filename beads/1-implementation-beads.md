@@ -1,147 +1,63 @@
-# EFE Platform — Master Implementation Guide for Beads
+# EFE Implementation Beads Tracking
 
-## 1. Architectural Foundation & Pillars
+## Completed Beads
 
-```text
-                                   EFE PLATFORM
-                                        │
-        ┌───────────────────────────────┼───────────────────────────────┐
-        │                               │                               │
-     Runtime                        Connectors                      Operations
-        │                               │                               │
-        ├── Flow Engine                 ├── Kafka Adapter               ├── Audit Logging
-        ├── Task Execution              ├── JMS / AMQ Adapter           ├── Metrics & KPIs
-        ├── Job Orchestration           ├── REST / HTTP Adapter         ├── Wiretap & Trace
-        ├── Quartz Scheduler            ├── SFTP Adapter                └── Health Checks
-        ├── Retry & DLQ                 └── File / S3 Adapter
-        └── In-Memory / Queue SPI
-                                        │
-                                        ▼
-                               PROJECT APPLICATION
-                            (Trade Reconciliation ESB)
-                                        │
-             ┌──────────────────────────┼──────────────────────────┐
-             │                          │                          │
-          Domain                    Processor                    Rules
-             │                          │                          │
-        ├── Trade                  └── TaskProcessor SPI       └── Match / Break
-        ├── ReconciliationJob           └── TradeReconProcessor    └── Tolerance & Diff
-        └── ReconciliationResult
-```
+### Bead EFE-001: Initial Scaffold
+- **Status**: COMPLETED
+- **Description**: Baseline Spring Boot application setup, web console, core domain entities (`Job`, `Task`, `Trade`, `ReconciliationResult`), and in-memory persistence/messaging interfaces.
+
+### Bead EFE-002: REST + Cucumber
+- **Status**: COMPLETED
+- **Description**: Reusable REST facility `/api/v1/jobs` with idempotency, correlation IDs, task/result queries, health/readiness endpoints, and executable Cucumber acceptance test suite.
 
 ---
 
-## 2. Implementation Specs by Bead
+## Active & Upcoming Roadmap
 
-### Bead 1: EFE-001 — Platform Foundation / Ikasan Module (COMPLETED)
-- **Objective**: Stand up the core Ikasan 5.0.x module architecture with 3 foundational flows:
-  - `trade-ingestion-flow`
-  - `reconciliation-dispatch-flow`
-  - `reconciliation-processing-flow`
+### Bead EFE-003: Real Ikasan Foundation (NEXT)
+- **Objective**: Establish the true, native Ikasan 5.x engine foundation and retire custom engine mocks.
 - **Key Deliverables**:
-  - `IkasanModule`, `IkasanFlow`, `FlowElement`, `IkasanEngine`.
-  - In-memory thread-safe SPI implementations for messaging (`InMemoryQueue`) and persistence (`InMemoryJobRepository`, etc.).
-  - Decoupled `TradeReconciliationProcessor`.
-  - Visual HTML5 telemetry dashboard at `/ikasan/`.
+  - Real Ikasan Module definition.
+  - Real Ikasan Flows with standard lifecycle states (`RUNNING`, `STOPPED`, `PAUSED`).
+  - Real Consumers implementing native Ikasan consumer patterns.
+  - Real Component chain (Converters, Translators, Brokers, Splitters, Filters, Routers, Processors).
+  - Real Producers (terminal endpoints).
 
----
+### Bead EFE-004: Core Flow Demonstrator
+- **Objective**: Implement the primary canonical Ikasan flow pattern: `REST Consumer → Converter → Processor → Router → 2 Producers (PASS / REVIEW)`.
 
-### Bead 2: EFE-002 — Reusable REST Facility with Cucumber Tests (COMPLETED)
-- **Objective**: Provide a generic, job-type independent REST facility under `/api/v1` with executable Gherkin acceptance tests.
-- **Key Deliverables**:
-  - `POST /api/v1/jobs` (with `Idempotency-Key` and `X-Correlation-ID`).
-  - `GET /api/v1/jobs/{jobId}`, `GET /api/v1/jobs/{jobId}/tasks`, `GET /api/v1/jobs/{jobId}/results`.
-  - `GET /health` and `GET /ready`.
-  - Standardized `ErrorResponse` (`EFE-VAL-001`, `EFE-VAL-002`, `EFE-JOB-404`).
-  - 6 Cucumber Gherkin feature files with JUnit 5 Platform Suite execution.
-  - OpenAPI 3.0 specification ([docs/openapi.yaml](docs/openapi.yaml)).
+### Bead EFE-005: Async Execution
+- **Objective**: Scheduled Quartz Consumer → Splitter → Async Worker Processor → Producer with bounded concurrency.
 
----
+### Bead EFE-006: Reliability
+- **Objective**: Resilience mechanisms: Configurable Retry policies, Error Recovery Manager, Dead Letter Queue (DLQ), and Wiretap audit logging.
 
-### Bead EFE-003: Platform Capability Pack
-- **Scope**: REST, gRPC, GraphQL, Database access, JMX management (`com.efe`), bounded executor, scheduler, local AI/LLM SPI, demo flows (`async-demo-flow`, `db-demo-flow`, `intelligence-audit-flow`, `trade-ingestion-flow`), Dockerfile, Kubernetes manifests.
-- **Status**: IMPLEMENTED
-- **Deliverables**:
-  - `EfeJobGrpcAdapter.java`
-  - `EfeGraphQLController.java`
-  - `EfeExecutorService.java` & `EfeExecutionProperties.java`
-  - `EfeModuleMBean.java`, `EfeExecutorMBean.java`, `EfeSchedulerMBean.java`, `EfeMessagingMBean.java`
-  - `AsyncDemoFlowConfiguration.java`, `DbDemoFlowConfiguration.java`, `IntelligenceAuditFlowConfiguration.java`
-  - `Dockerfile`, `deploy/k8s/`
-  - Cucumber acceptance specs: `rest_api.feature`, `grpc_api.feature`, `graphql_api.feature`, `jmx_management.feature`, `database.feature`, `async_execution.feature`, `ai_component.feature`
-  - Execution context and header propagation.
+### Bead EFE-007: Optional AI Component
+- **Objective**: AI Processor integration with local Ollama runtime, PII sanitizer, and heuristic fallback.
 
----
+### Bead EFE-008: JMX / Operations
+- **Objective**: Spring JMX MBean management surface under `com.efe` domain for runtime flow and worker pool control.
 
-### Bead 4: EFE-004 — Scheduler
-- **Objective**: Quartz enterprise scheduler integration with cron triggers, calendar exclusions, and clustered job execution.
+### Bead EFE-009: GraphQL
+- **Objective**: GraphQL query/mutation API layer delegating to core application services.
 
----
+### Bead EFE-010: gRPC
+- **Objective**: gRPC Protobuf API adapter for high-performance job submission and query.
 
-### Bead 5: EFE-005 — Messaging SPI + In-Memory
-- **Objective**: Enhanced bounded concurrency model, backpressure thresholds, multi-topic routing, and priority queueing.
+### Bead EFE-011: Connector Pack
+- **Objective**: Enterprise messaging transport plugins for Kafka, RabbitMQ, ActiveMQ/JMS, and Redis Streams.
 
----
+### Bead EFE-012: Camel Integration
+- **Objective**: Apache Camel component mediation within Ikasan endpoints.
 
-### Bead 6: EFE-006 — Worker Execution
-- **Objective**: Dynamic worker thread pool management, asynchronous task execution workers, and CPU/IO thread isolation.
+### Bead EFE-013: Corporate Action Module
+- **Objective**: Standalone `efe-corporate-actions` microservice application.
 
----
+### Bead EFE-014: Reconciliation Module
+- **Objective**: Standalone `efe-reconciliation` microservice application.
 
-### Bead 7: EFE-007 — Retry / Idempotency / DLQ Model
-- **Objective**: Exponential backoff, jittered retries, deterministic deduplication tokens, and Dead Letter Queue (DLQ) routing.
+### Bead EFE-015: Electives Module
+- **Objective**: Standalone `efe-electives` microservice application.
 
----
-
-### Bead 8: EFE-008 — Persistence SPI
-- **Objective**: Pluggable persistence providers with transactional semantics (H2, PostgreSQL, MongoDB).
-
----
-
-### Bead 9: EFE-009 — REST API Framework
-- **Objective**: Generic REST ingestion framework, OpenAPI/Swagger 3 specs, async job submission, and webhook callbacks.
-
----
-
-### Bead 10: EFE-010 — Observability / Operations
-- **Objective**: Distributed tracing (OpenTelemetry/W3C context), Prometheus metrics, audit trail wiretap, and alerts.
-
----
-
-### Bead 11: EFE-011 — Kafka Plugin
-- **Objective**: Production Kafka producer/consumer adapters, partition key routing, consumer group rebalance handlers.
-
----
-
-### Bead 12: EFE-012 — RabbitMQ Plugin
-- **Objective**: AMQP 0-9-1 exchange bindings, publisher confirms, channel pooling, and dead-letter exchanges.
-
----
-
-### Bead 13: EFE-013 — AMQ/JMS Plugin
-- **Objective**: Jakarta JMS 3.x provider for Apache ActiveMQ / Artemis, transactional sessions, and XA support.
-
----
-
-### Bead 14: EFE-014 — Redis Streams Plugin
-- **Objective**: Redis Streams consumer groups, `XACK`, pending entry list (`XPENDING`) claiming, and stream trimming.
-
----
-
-### Bead 15: EFE-015 — Camel Integration
-- **Objective**: Apache Camel enterprise connector bridging SFTP, AS2, FIX protocol, and SWIFT MT/MX to EFE flows.
-
----
-
-### Bead 16: EFE-016 — Project Template / Bootstrap
-- **Objective**: Maven archetype and CLI generator (`efe-starter`) for scaffolding new enterprise integration modules.
-
----
-
-### Bead 17: EFE-017 — Reconciliation Example
-- **Objective**: Full high-volume Trade Reconciliation implementation (10K+ records, multi-source match, tolerance algorithms).
-
----
-
-### Bead 18: EFE-018 — Corporate Action Example
-- **Objective**: Corporate Action processing engine (dividend payouts, stock splits, entitlement calculations, ledger postings).
+### Bead EFE-016: Docker / Kubernetes Production Packaging
+- **Objective**: Multi-module container images, Helm charts, and cloud-native deployment manifests.
