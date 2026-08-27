@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: efe-reconciliation
+  namespace: default
+  labels:
+    app: efe-reconciliation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: efe-reconciliation
+  template:
+    metadata:
+      labels:
+        app: efe-reconciliation
+    spec:
+      containers:
+        - name: efe-reconciliation
+          image: efe-reconciliation:dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1024Mi"

@@ -1,0 +1,63 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: efe-platform-demo
+  main:
+    banner-mode: console
+  jmx:
+    enabled: true
+    unique-names: true
+
+esb:
+  module-name: enterprise-flow-engine
+  description: EFE Platform Demonstration
+
+messaging:
+  provider: inmemory
+  queue:
+    capacity: 1000
+
+persistence:
+  provider: inmemory
+
+worker:
+  pool-size: 10
+
+task:
+  batch-size: 100
+  max-retries: 3
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+    jmx:
+      exposure:
+        include: "*"
+
+efe:
+  security:
+    enabled: false
+    issuer-uri: ""
+    audience: efe-api
+  execution:
+    workers:
+      core-size: 4
+      max-size: 10
+      queue-capacity: 100
+  scheduler:
+    poll:
+      interval-ms: 5000
+  reliability:
+    max-retries: 3
+    initial-delay-ms: 100
+    backoff-multiplier: 2.0
+    max-delay-ms: 10000
+    dlq-capacity: 1000
+  intelligence:
+    enabled: false          # Set to true when Ollama is running locally
+    provider: local
+    timeout-ms: 5000

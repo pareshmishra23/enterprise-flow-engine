@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: efe-reconciliation-config
+  namespace: default
+  labels:
+    app: efe-reconciliation
+data:
+  application.yml: |
+    server:
+      port: 8081
+    spring:
+      application:
+        name: reconciliation-example
+      jmx:
+        enabled: true
+    esb:
+      module-name: trade-recon-esb
+    messaging:
+      provider: inmemory
+    persistence:
+      provider: inmemory
+    efe:
+      execution:
+        workers:
+          core-size: 4
+          max-size: 10
+          queue-capacity: 100
+      intelligence:
+        enabled: false

@@ -116,32 +116,30 @@ Every integration process in EFE follows the standard native Ikasan component gr
 
 ## 5. Quick Start
 
-### Build & Run Tests
+The repository is a multi-module Maven reactor:
+
+```text
+enterprise-flow-engine (reactor)
+├── efe-platform                     <- reusable, domain-neutral EFE Platform library
+└── examples/
+    ├── platform-demo                <- standalone demonstrator of pure EFE capabilities (port 8090)
+    └── reconciliation-example       <- reference application consuming the platform (port 8080)
+```
+
+### Build & Run Tests (whole reactor)
 ```bash
 mvn clean test
 ```
 
-### Run Locally
+### Run the reconciliation-example (reference app, port 8080)
 ```bash
-mvn spring-boot:run
+mvn -pl examples/reconciliation-example spring-boot:run
 ```
-
-- **Enterprise Flow Engine Console**: [http://localhost:8080/](http://localhost:8080/)
+- **Web Console**: [http://localhost:8080/](http://localhost:8080/)
 - **Module Telemetry API**: `GET http://localhost:8080/api/v1/ikasan/module`
-- **Submit Core Event**:
-  ```bash
-  curl -X POST http://localhost:8080/api/v1/core/events \
-    -H "Content-Type: application/json" \
-    -d '{
-      "eventId": "E-1001",
-      "type": "TRADE",
-      "expectedQuantity": 100,
-      "actualQuantity": 100
-    }'
-  ```
 - **Submit Reconciliation Job**:
   ```bash
-  curl -X POST http://localhost:8080/api/v1/jobs \
+  curl -X POST http://localhost:8080/api/v1/jobs/reconciliation \
     -H "Content-Type: application/json" \
     -d '{
       "businessDate": "2026-08-27",
@@ -151,6 +149,26 @@ mvn spring-boot:run
       ]
     }'
   ```
+
+### Run the platform-demo (pure EFE capabilities, port 8090)
+```bash
+mvn -pl examples/platform-demo spring-boot:run
+```
+- **Submit Core Event**:
+  ```bash
+  curl -X POST http://localhost:8090/api/v1/core/events \
+    -H "Content-Type: application/json" \
+    -d '{
+      "eventId": "E-1001",
+      "type": "TRADE",
+      "expectedQuantity": 100,
+      "actualQuantity": 100
+    }'
+  ```
+
+See [`docs/efe-platform-extraction.md`](docs/efe-platform-extraction.md) for the platform extraction
+migration map and [`docs/module-template.md`](docs/module-template.md) for building a new autonomous
+module on the platform.
 
 ---
 
@@ -168,12 +186,12 @@ mvn spring-boot:run
 | **EFE-008** | JMX / Operations | *Management* | **COMPLETED — FOUNDATION** | JMX `com.efe` management plane for Module, Flow, Scheduler, Executor, and Messaging. |
 | **EFE-009** | GraphQL | *API* | **COMPLETED — FOUNDATION** | Local GraphQL query/mutation adapter over common services. |
 | **EFE-010** | gRPC | *API* | **COMPLETED — FOUNDATION** | Local gRPC adapter boundary and acceptance coverage. |
-| **EFE-011** | Connector Pack | *Connectors* | **COMPLETED — FOUNDATION** | Provider SPI and local adapter boundaries for Kafka, RabbitMQ, AMQ/JMS, Redis Streams, and in-memory transport. |
+| **EFE-011** | Platform Extraction & Reconciliation Separation | *Platform* | **COMPLETED** | Extracted reusable domain-neutral `efe-platform` library + autonomous `reconciliation-example` (reference) and `platform-demo` (demonstrator); 115 tests green; dependency direction enforced (`reconciliation-example → efe-platform`). |
 | **EFE-012** | Camel Integration | *Integration* | **PLANNED** | Apache Camel component mediation in Ikasan flows. |
-| **EFE-013** | Corporate Action Module | *Domain* | **PLANNED** | Autonomous `efe-corporate-actions` microservice. |
-| **EFE-014** | Reconciliation Module | *Domain* | **PLANNED** | Autonomous `efe-reconciliation` microservice. |
-| **EFE-015** | Electives Module | *Domain* | **PLANNED** | Autonomous `efe-electives` microservice. |
-| **EFE-016** | Docker / K8s Production Packaging | *Deployment* | **COMPLETED — FOUNDATION** | Dockerfile and Kubernetes deployment/service/config templates; Helm, secrets, scans, and live-cluster validation remain. |
+| **EFE-013** | Corporate Action Module | *Domain* | **PLANNED** | Autonomous `efe-corporate-actions` microservice (consumes efe-platform). |
+| **EFE-014** | Reconciliation Module | *Domain* | **COMPLETED — REFERENCE** | Delivered as `examples/reconciliation-example`, a reference implementation consuming efe-platform (3 reconciliation flows). |
+| **EFE-015** | Electives Module | *Domain* | **PLANNED** | Autonomous `efe-electives` microservice (consumes efe-platform). |
+| **EFE-016** | Docker / K8s Production Packaging | *Deployment* | **COMPLETED — FOUNDATION** | Dockerfile packages `efe-reconciliation:dev`; Kubernetes manifests under `deploy/k8s/reconciliation/`; Helm, secrets, scans, and live-cluster validation remain. |
 
 
 ## 7. EFE-006 Reliability Foundation

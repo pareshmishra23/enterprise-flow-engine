@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Flow Engine — Architecture & Runtime Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-card: rgba(18, 26, 43, 0.85);
+            --bg-element: rgba(26, 38, 64, 0.6);
+            --border-color: rgba(66, 99, 150, 0.25);
+            --border-highlight: rgba(79, 140, 255, 0.5);
+            --accent-cyan: #00f2fe;
+            --accent-blue: #4facfe;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            background-image: radial-gradient(circle at 10% 20%, rgba(30, 58, 138, 0.2) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 40%);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #0b0f19;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.35);
+        }
+
+        .title-block h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .title-block p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .module-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 9999px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 10px var(--accent-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.25rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.7rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--text-main);
+        }
+
+        .flow-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .flows-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .flow-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .flow-card:hover {
+            border-color: var(--border-highlight);
+        }
+
+        .flow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .flow-name {
+            font-size: 1.15rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: var(--font-mono);
+        }
+
+        .state-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .state-RUNNING { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .state-STOPPED { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+        .pipeline-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            overflow-x: auto;
+            padding: 1rem 0;
+        }
+
+        .node {
+            background: var(--bg-element);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            min-width: 170px;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .node-type {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.35rem;
+        }
+
+        .node-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-main);
+            word-break: break-word;
+        }
+
+        .node-CONSUMER .node-type { color: var(--accent-cyan); }
+        .node-CONVERTER .node-type { color: var(--accent-purple); }
+        .node-TRANSLATOR .node-type { color: var(--accent-amber); }
+        .node-BROKER .node-type { color: var(--accent-blue); }
+        .node-SPLITTER .node-type { color: #ec4899; }
+        .node-PRODUCER .node-type { color: var(--accent-green); }
+
+        .arrow {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .metrics-row {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+        }
+
+        .metric-val {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .test-panel {
+            margin-top: 2.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+            color: #0b0f19;
+            font-weight: 600;
+            border: none;
+            padding: 0.6rem 1.25rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-family);
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-area">
+                <div class="logo-icon" style="font-size: 1.1rem; letter-spacing: -0.5px;">EFE</div>
+                <div class="title-block">
+                    <h1>Enterprise Flow Engine</h1>
+                    <p>Architecture & Runtime Console</p>
+                </div>
+            </div>
+            <div class="module-badge">
+                <div class="status-dot"></div>
+                <span id="module-name">enterprise-flow-engine</span>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Active Flows</div>
+                <div class="stat-value" id="active-flows-count">9 / 9</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Events Processed</div>
+                <div class="stat-value" id="total-events">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Messaging Provider</div>
+                <div class="stat-value" style="color: var(--accent-cyan);">IN-MEMORY</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Active Persistence Provider</div>
+                <div class="stat-value" style="color: var(--accent-green);">IN-MEMORY</div>
+            </div>
+        </div>
+
+        <div class="section-title">
+            <span>Configured Engine Flows & Components</span>
+        </div>
+
+        <div class="flows-container" id="flows-container">
+            <!-- Dynamic flow cards inserted here -->
+        </div>
+
+        <div class="test-panel">
+            <h3 style="margin-bottom: 0.75rem; font-size: 1.1rem;">Quick Trigger Test</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">
+                Submit a sample trade reconciliation payload directly to the REST Ingestion Flow:
+            </p>
+            <button class="btn" onclick="submitTestJob()">Submit Test Reconciliation Job</button>
+            <div id="test-result" style="margin-top: 1rem; font-family: var(--font-mono); font-size: 0.85rem;"></div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchModuleData() {
+            try {
+                const res = await fetch('/api/v1/ikasan/module');
+                if (!res.ok) return;
+                const data = await res.json();
+                renderModule(data);
+            } catch (e) {
+                console.error("Failed to load Ikasan module data", e);
+            }
+        }
+
+        function renderModule(data) {
+            document.getElementById('module-name').textContent = data.moduleName || 'TRADE-RECON-ESB';
+            
+            let runningCount = 0;
+            let totalEvents = 0;
+            const container = document.getElementById('flows-container');
+            container.innerHTML = '';
+
+            (data.flows || []).forEach(flow => {
+                if (flow.state === 'RUNNING') runningCount++;
+                totalEvents += (flow.totalEventsProcessed || 0);
+
+                const card = document.createElement('div');
+                card.className = 'flow-card';
+
+                let pipelineHtml = '';
+                // Consumer
+                pipelineHtml += `
+                    <div class="node node-CONSUMER">
+                        <div class="node-type">Consumer</div>
+                        <div class="node-name">${flow.consumer ? flow.consumer.name : 'Consumer'}</div>
+                    </div>
+                    <div class="arrow">→</div>
+                `;
+
+                // Intermediates & Router Branches
+                let hasTerminalProducer = flow.producer != null;
+                (flow.components || []).forEach(comp => {
+                    pipelineHtml += `
+                        <div class="node node-${comp.type}">
+                            <div class="node-type">${comp.type}</div>
+                            <div class="node-name">${comp.name}</div>
+                        </div>
+                    `;
+
+                    if (comp.routes && Object.keys(comp.routes).length > 0) {
+                        hasTerminalProducer = true;
+                        pipelineHtml += `<div class="arrow">→</div><div style="display:flex; flex-direction:column; gap:0.5rem;">`;
+                        for (const [rName, rProd] of Object.entries(comp.routes)) {
+                            pipelineHtml += `
+                                <div class="node node-PRODUCER" style="border-left: 3px solid var(--accent-cyan); font-size:0.75rem; padding:0.4rem 0.8rem;">
+                                    <div class="node-type" style="color:var(--accent-cyan); font-weight:700;">ROUTE: ${rName}</div>
+                                    <div class="node-name">${rProd}</div>
+                                </div>
+                            `;
+                        }
+                        pipelineHtml += `</div>`;
+                    } else {
+                        pipelineHtml += `<div class="arrow">→</div>`;
+                    }
+                });
+
+                // Default Producer
+                if (flow.producer) {
+                    pipelineHtml += `
+                        <div class="node node-PRODUCER">
+                            <div class="node-type">Producer</div>
+                            <div class="node-name">${flow.producer.name}</div>
+                        </div>
+                    `;
+                } else if (!hasTerminalProducer) {
+                    // Remove trailing arrow if no producer
+                    pipelineHtml = pipelineHtml.replace(/<div class="arrow">→<\/div>$/, '');
+                }
+
+                card.innerHTML = `
+                    <div class="flow-header">
+                        <div class="flow-name">
+                            <span>⚡</span>
+                            <span>${flow.name}</span>
+                        </div>
+                        <span class="state-badge state-${flow.state}">${flow.state}</span>
+                    </div>
+                    <div class="pipeline-wrapper">
+                        ${pipelineHtml}
+                    </div>
+                    <div class="metrics-row">
+                        <div>Processed: <span class="metric-val">${flow.totalEventsProcessed || 0}</span></div>
+                        <div>Errors: <span class="metric-val">${flow.totalEventsFailed || 0}</span></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('active-flows-count').textContent = `${runningCount} / ${(data.flows || []).length}`;
+            document.getElementById('total-events').textContent = totalEvents;
+        }
+
+        async function submitTestJob() {
+            const out = document.getElementById('test-result');
+            out.style.color = '#94a3b8';
+            out.textContent = 'Submitting trade reconciliation request...';
+
+            const payload = {
+                businessDate: new Date().toISOString().split('T')[0],
+                source: "CUSTODIAN",
+                records: [
+                    { tradeId: "TR-" + Math.floor(Math.random() * 9000 + 1000), accountId: "ACC-99", securityId: "AAPL", quantity: 150.0, price: 220.50 },
+                    { tradeId: "TR-" + Math.floor(Math.random() * 9000 + 1000), accountId: "ACC-99", securityId: "GOOGL", quantity: 75.0, price: 180.00 }
+                ]
+            };
+
+            try {
+                const res = await fetch('/api/v1/jobs/reconciliation', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                out.style.color = '#34d399';
+                out.textContent = `Success! Response HTTP ${res.status}: ` + JSON.stringify(result, null, 2);
+                setTimeout(fetchModuleData, 500);
+            } catch (err) {
+                out.style.color = '#f87171';
+                out.textContent = 'Error: ' + err.message;
+            }
+        }
+
+        fetchModuleData();
+        setInterval(fetchModuleData, 3000);
+    </script>
+</body>
+</html>

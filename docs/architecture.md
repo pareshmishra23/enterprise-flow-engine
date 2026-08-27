@@ -214,7 +214,12 @@ onConsumerEvent --> reliability.execute(eventId, flow, doExecute)
 
 ### 5. Current implementation status and next boundary
 
-EFE-001 through EFE-010 are complete at the demonstrator/foundation level, delivering realistic Ikasan component semantics (module/flows, router branching, filter, Quartz scheduling, flow-level retry/backoff/DLQ, wiretap/AI/JMX/GraphQL). The current module runs **12 flows** (including `reliability-demo-flow`), verified by **113 passing tests**. The next reliability hardening boundary is durable delivery: persistent DLQ, transactional outbox/inbox, idempotent replay, broker acknowledgements, and restart recovery. These concerns must extend the existing reliability contracts rather than introducing a second orchestration or recovery framework; official `org.ikasan` runtime adoption remains an open, deferred ADR path.
+EFE-001 through EFE-010 are complete at the demonstrator/foundation level, delivering realistic Ikasan component semantics (module/flows, router branching, filter, Quartz scheduling, flow-level retry/backoff/DLQ, wiretap/AI/JMX/GraphQL). **EFE-011** split the single application into a reusable domain-neutral **EFE Platform** library and autonomous example applications:
+
+- `examples/reconciliation-example` (reference) wires its own Module `trade-recon-esb` with **3 flows** (`trade-ingestion-flow`, `reconciliation-dispatch-flow`, `reconciliation-processing-flow`) plus its own domain, processors, REST/graphql/grpc APIs, persistence and JMX. It depends only on `efe-platform`.
+- `examples/platform-demo` (demonstrator) wires Module `enterprise-flow-engine` with **8 pure-platform demo flows**.
+
+The full reactor is verified by the current suite — 115 tests (efe-platform 34, platform-demo 50 incl. 41 Cucumber, reconciliation-example 31 incl. 17 Cucumber), 0 failures. See `docs/efe-platform-extraction.md` for the migration map and `docs/module-template.md` for building a new autonomous module. The next reliability hardening boundary is durable delivery: persistent DLQ, transactional outbox/inbox, idempotent replay, broker acknowledgements, and restart recovery. These concerns must extend the existing reliability contracts rather than introducing a second orchestration or recovery framework; official `org.ikasan` runtime adoption remains an open, deferred ADR path.
 
 
 ---
