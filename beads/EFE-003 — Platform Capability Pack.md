@@ -3,19 +3,89 @@
 ## Status: IMPLEMENTED
 
 ## Objective
-Enhance the Enterprise Flow Engine (EFE) into a **single, runnable Spring Boot platform module** containing reusable integration capabilities attached to Ikasan flows.
+
+Enhance the existing Enterprise Flow Engine (EFE) into a **single, runnable Spring Boot platform module** containing reusable integration capabilities that can be attached to Ikasan flows.
+
+The platform must provide ready-made capabilities for:
+
+* REST API
+* gRPC
+* GraphQL
+* Database access
+* JMX management/control
+* asynchronous execution
+* executor/worker pools
+* scheduling
+* messaging endpoints
+* optional local AI/LLM processing
+
+Every capability must integrate into the **Ikasan Module → Flow → Consumer → Components → Producer** architecture.
+
+This bead must also contain **real executable examples and Cucumber acceptance tests** proving that the capabilities work.
 
 ---
 
-## Capabilities Delivered
+# 1. Core Architecture
 
+The application remains a **single Spring Boot application**.
+
+```text
+                         EFE
+              Enterprise Flow Engine
+                   Spring Boot
+                        |
+                  Ikasan Runtime
+                        |
+                  EFE Module
+                        |
+             +----------+----------+
+             |          |          |
+             v          v          v
+           FLOW        FLOW       FLOW
+             |          |          |
+         Consumer    Consumer   Consumer
+             |          |          |
+        Components  Components Components
+             |          |          |
+         Producer    Producer   Producer
 ```
+
+EFE must not create a second orchestration engine beside Ikasan.
+
+---
+
+# 2. Ikasan Flow Rule
+
+Every executable integration path must follow the Ikasan model:
+
+```text
+CONSUMER
+   |
+   v
+CONVERTER / TRANSLATOR
+   |
+   v
+ROUTER / SPLITTER / FILTER / BROKER / PROCESSOR
+   |
+   v
+PRODUCER / ENDPOINT
+```
+
+Not every flow must contain every component.
+
+---
+
+# 3. Platform Capability Groups
+
+EFE exposes the following capabilities:
+
+```text
 EFE
 │
 ├── API
 │   ├── REST (/api/v1/jobs)
 │   ├── gRPC (EfeJobGrpcAdapter)
-│   └── GraphQL (/graphql - job, tasks, results, submitJob)
+│   └── GraphQL (/graphql)
 │
 ├── FLOW
 │   ├── Consumer (IkasanConsumer)
@@ -23,79 +93,80 @@ EFE
 │   ├── Translator (IkasanTranslator)
 │   ├── Router (IkasanRouter)
 │   ├── Splitter (IkasanSplitter)
+│   ├── Filter (IkasanFilter)
 │   ├── Broker (IkasanBroker)
 │   ├── Processor (TaskProcessor)
 │   └── Producer (IkasanProducer)
 │
 ├── EXECUTION
-│   ├── Bounded Executor (EfeExecutorService, configurable core/max/queue)
-│   ├── Worker Pool (efe.execution.workers)
+│   ├── Executor (EfeExecutorService)
+│   ├── Worker (efe.execution.workers)
 │   └── Scheduler (ScheduledTaskConsumer)
 │
 ├── CONNECTIVITY
 │   ├── Database (H2 / DatabaseAccessBroker)
-│   └── Messaging (In-Memory SPI, Kafka/RabbitMQ/JMS/Redis plugin readiness)
+│   ├── REST
+│   ├── JMS/AMQ
+│   ├── Kafka
+│   ├── RabbitMQ
+│   ├── Redis
+│   ├── File
+│   └── SFTP
 │
 ├── MANAGEMENT (JMX Domain: com.efe)
-│   ├── Module MBean (com.efe:type=Module,name=trade-recon-esb)
-│   ├── Executor MBean (com.efe:type=Executor,name=worker-pool)
-│   ├── Scheduler MBean (com.efe:type=Scheduler,name=reconciliation-dispatch)
-│   └── Messaging MBean (com.efe:type=Messaging,name=inmemory)
+│   ├── JMX (EfeModuleMBean, EfeExecutorMBean, EfeSchedulerMBean, EfeMessagingMBean)
+│   ├── Health (/api/v1/health)
+│   └── Metrics
 │
 └── INTELLIGENCE
-    └── Optional Local AI/LLM SPI (Ollama local runtime, local anomaly & fraud detectors)
+    └── Optional AI/LLM (Intelligence SPI, Ollama local runtime, local anomaly & fraud rules)
 ```
 
 ---
 
-## Registered Demonstration Flows
+# 4. Registered Demonstration Flows in Ikasan Module
 
-```
+```text
 EFE Module (trade-recon-esb)
 │
-├── trade-ingestion-flow (REST Demo)
+├── rest-demo-flow (trade-ingestion-flow)
 │   REST Consumer → JSON Converter → Validation Translator → Job Registration Broker → Response Producer
 │
-├── async-demo-flow (Async Execution Demo)
+├── async-demo-flow
 │   Scheduled Consumer → Task Retrieval Broker → Splitter → Async Worker Processor → Result Producer
 │
-├── intelligence-audit-flow (AI Intelligence Demo)
+├── ai-demo-flow (intelligence-audit-flow)
 │   Event Consumer → Intelligence Router Broker → Result Producer Adapter
 │
-├── db-demo-flow (Database Access Demo)
-│   Scheduled Consumer → Database Access Broker → DB Result Producer
-│
-├── reconciliation-dispatch-flow
-│   Scheduled Dispatch Consumer → Task Retrieval Broker → Splitter → Messaging Dispatch Producer
-│
-└── reconciliation-processing-flow
-    Messaging Processing Consumer → Event Translator → Task Processing Broker → Result Persistence Broker → Result Producer
+└── db-demo-flow
+    Scheduled Consumer → Database Access Broker → DB Result Producer
 ```
 
 ---
 
-## Executable Acceptance Specifications (Cucumber)
+# 5. Executable Cucumber Acceptance Tests
 
-- `features/rest_api.feature` — REST submission, status, idempotency, validation
-- `features/grpc_api.feature` — gRPC SubmitJob, GetJob adapters
-- `features/graphql_api.feature` — GraphQL job, tasks, results queries & submitJob mutation
-- `features/jmx_management.feature` — Local MBeanServer module status, executor metrics query
-- `features/database.feature` — H2 database broker persist and retrieve
-- `features/async_execution.feature` — Bounded executor async task parallel execution
-- `features/ai_component.feature` — Optional local AI integration and disabled-mode graceful pass
+Features located in `src/test/resources/features/`:
+- `rest_api.feature` — REST Job submission & status query
+- `grpc_api.feature` — gRPC SubmitJob & GetJob adapters
+- `graphql_api.feature` — GraphQL job, tasks, results queries & submitJob mutation
+- `jmx_management.feature` — Local MBeanServer module status & executor metrics query
+- `database.feature` — H2 database broker persist and retrieve
+- `async_execution.feature` — Bounded executor parallel processing
+- `ai_component.feature` — Optional local AI integration and disabled-mode graceful pass
 
 ---
 
-## Container & Kubernetes Readiness
+# 6. Container & Kubernetes Readiness
 
 - `Dockerfile` — Multi-stage Eclipse Temurin 21 container image
 - `deploy/k8s/deployment.yaml` — Kubernetes deployment with liveness & readiness probes
 - `deploy/k8s/service.yaml` — ClusterIP service on port 8080
-- `deploy/k8s/configmap.yaml` — ConfigMap for runtime application configuration
+- `deploy/k8s/configmap.yaml` — ConfigMap for application configuration
 
 ---
 
-## Verification
+# 7. Verification
 
 ```bash
 mvn clean test
